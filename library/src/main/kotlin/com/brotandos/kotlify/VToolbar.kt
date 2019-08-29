@@ -40,8 +40,15 @@ class VToolbar : VContainer<Toolbar>() {
         return view
     }
 
-    fun vAction(title: String, init: VMenu.() -> Unit) {
+    fun vAction(
+        title: String,
+        iconResId: Int? = null,
+        isLoading: BehaviorRelay<Boolean>? = null,
+        init: VMenu.() -> Unit
+    ) {
         val vMenu = VMenu(title)
+        vMenu.iconResId = iconResId
+        vMenu.isLoading = isLoading
         vMenu.init()
         menuItems += vMenu
     }

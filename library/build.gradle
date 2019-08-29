@@ -39,5 +39,8 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation "androidx.core:core-ktx:1.0.2"
 
+    // RecyclerView
+    implementation 'com.google.android.material:material:1.0.0'
+
     implementation 'com.jakewharton.rxrelay2:rxrelay:2.0.0'
 }

@@ -3,8 +3,9 @@
 
 ### TODO
 * Light and dark themes for views
-* Toolbar action: { badge, progressBar }
-* Router
+* Implement toolbar badges
+* Navigating to another fragment, on view with 'to' prop clicked
+* Implementing recyclerview
 
 ### Thanks to
-[Vuetify library for inspiration](vuetifyjs.com)
+* [Vuetify library for inspiration](vuetifyjs.com)

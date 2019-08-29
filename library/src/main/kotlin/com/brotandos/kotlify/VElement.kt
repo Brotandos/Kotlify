@@ -22,6 +22,8 @@ abstract class VElement<V : View> {
 
     var layoutInit: (V.() -> Unit)? = null
 
+    val Int.dp get() = this
+
     abstract fun createView(context: Context): V
 
     fun isDark(isDarkRelay: BehaviorRelay<Boolean>, lightColor: Int, darkColor: Int) {

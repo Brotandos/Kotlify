@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import com.jakewharton.rxrelay2.BehaviorRelay
 
 abstract class VContainer<V : ViewGroup> : VElement<V>() {
 
@@ -18,18 +19,29 @@ abstract class VContainer<V : ViewGroup> : VElement<V>() {
         return view
     }
 
-    inline fun <reified V : View> vCustom(init: VElement<V>.() -> Unit) {
+    inline fun <reified V : View> vCustom(init: VElement<V>.() -> Unit): VElement<V> {
         val vElement = object : VElement<V>() {
             override fun createView(context: Context): V = KotlifyInternals.initiateView(context, V::class.java)
         }
         vElement.init()
         children += vElement
+        return vElement
     }
 
     fun vToolbar(init: VToolbar.() -> Unit) {
         val vToolbar = VToolbar()
         vToolbar.init()
         children += vToolbar
+    }
+
+    fun <E> vRecycler(items: BehaviorRelay<List<E>>, init: VRecycler<E>.() -> Unit) {
+        val vRecycler = VRecycler(items)
+        vRecycler.init()
+        children += vRecycler
+    }
+
+    operator fun VElement<*>.unaryPlus() {
+        children += this
     }
 }
 
