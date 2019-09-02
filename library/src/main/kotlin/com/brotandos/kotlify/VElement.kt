@@ -4,13 +4,18 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
+import androidx.fragment.app.Fragment
 import com.jakewharton.rxrelay2.BehaviorRelay
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 
-abstract class VElement<V : View> {
+abstract class VElement<V : View> : Disposable {
 
     private var isDark: BehaviorRelay<Boolean>? = null
 
     private var backgroundColors: Pair<Int, Int>? = null
+
+    private val disposables = CompositeDisposable()
 
     open var vShow: BehaviorRelay<Boolean>? = null
 
@@ -18,7 +23,13 @@ abstract class VElement<V : View> {
 
     open var isEnabled: BehaviorRelay<Boolean>? = null
 
+    open var navigatesTo: Fragment? = null
+
+    open var onClick: (() -> Unit)? = null
+
     open var viewInit: (V.() -> Unit)? = null
+
+    open var kotlifyContext: KotlifyContext? = null
 
     var layoutInit: (V.() -> Unit)? = null
 
@@ -32,20 +43,24 @@ abstract class VElement<V : View> {
     }
 
     @CallSuper
-    protected open fun initSubscriptions(view: V) {
-        isDark?.subscribe {
-            val (light, dark) = backgroundColors ?: return@subscribe
-            view.setBackgroundColor(if (it) dark else light)
-        }
+    protected open fun initSubscriptions(view: V?) {
+        isDark
+            ?.subscribe {
+                val (light, dark) = backgroundColors ?: return@subscribe
+                view?.setBackgroundColor(if (it) dark else light)
+            }
+            ?.addToComposite()
 
-        vShow?.subscribe {
-            view.visibility = if (it) View.VISIBLE else View.GONE
-        }
+        vShow
+            ?.subscribe { view?.visibility = if (it) View.VISIBLE else View.GONE }
+            ?.addToComposite()
 
-        isEnabled?.subscribe(view::setEnabled)
+        isEnabled
+            ?.subscribe { view?.isEnabled = it }
+            ?.addToComposite()
     }
 
-    inline fun <reified T: ViewGroup.LayoutParams> initLayout(
+    inline fun <reified T : ViewGroup.LayoutParams> initLayout(
         width: Int,
         height: Int,
         crossinline init: T.() -> Unit
@@ -58,7 +73,7 @@ abstract class VElement<V : View> {
         }
     }
 
-    inline fun <reified T: ViewGroup.LayoutParams> initLayout(
+    inline fun <reified T : ViewGroup.LayoutParams> initLayout(
         width: Int,
         height: Int
     ) {
@@ -69,13 +84,35 @@ abstract class VElement<V : View> {
         }
     }
 
-    fun initView(init: V.() -> Unit) { viewInit = init }
+    fun initView(init: V.() -> Unit) {
+        viewInit = init
+    }
 
     open fun build(context: Context): V {
         val view = createView(context)
         viewInit?.invoke(view)
         layoutInit?.invoke(view)
         initSubscriptions(view)
+        onClick?.let {
+            view.setOnClickListener {
+                it()
+                navigatesTo?.let { fragment ->
+                    view.isEnabled = false
+                    kotlifyContext?.router?.navigateTo(fragment)
+                }
+            }
+        }
         return view
+    }
+
+    @CallSuper
+    override fun dispose() {
+        disposables.dispose()
+    }
+
+    override fun isDisposed(): Boolean = disposables.isDisposed
+
+    protected fun Disposable.addToComposite() {
+        disposables.add(this)
     }
 }

@@ -16,7 +16,7 @@ class VRecycler<E>(val items: BehaviorRelay<List<E>>) : VElement<RecyclerView>()
             val vElement = vItem?.invoke(items.value[viewType])
                 ?: throw RuntimeException("vItem is not set")
             val view = vElement.build(parent.context)
-            return KotlifyViewHolder(view)
+            return KotlifyViewHolder(view, vElement)
         }
 
         override fun onBindViewHolder(holder: KotlifyViewHolder, position: Int) = Unit
@@ -35,11 +35,11 @@ class VRecycler<E>(val items: BehaviorRelay<List<E>>) : VElement<RecyclerView>()
         this.adapter = this@VRecycler.adapter
     }
 
-    override fun initSubscriptions(view: RecyclerView) {
+    override fun initSubscriptions(view: RecyclerView?) {
         super.initSubscriptions(view)
-        items.subscribe {
-            adapter.notifyDataSetChanged()
-        }
+        items
+            .subscribe { adapter.notifyDataSetChanged() }
+            .addToComposite()
     }
 
     fun vItem(itemView: VContainer<*>.(E) -> VElement<*>) {
@@ -49,9 +49,11 @@ class VRecycler<E>(val items: BehaviorRelay<List<E>>) : VElement<RecyclerView>()
         vItem = { vContainer.itemView(it) }
     }
 
-    class KotlifyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class KotlifyViewHolder(
+        itemView: View,
+        private val vElement: VElement<*>
+    ) : RecyclerView.ViewHolder(itemView) {
 
-        // TODO clear subscriptions
-        fun dispose() = Unit
+        fun dispose() = vElement.dispose()
     }
 }

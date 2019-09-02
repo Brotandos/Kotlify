@@ -10,25 +10,28 @@ import android.widget.RelativeLayout
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.setPadding
 import com.jakewharton.rxrelay2.BehaviorRelay
+import io.reactivex.disposables.Disposable
 
 class VToolbar : VContainer<Toolbar>() {
 
-    val title = BehaviorRelay.createDefault("")
+    private val title = BehaviorRelay.createDefault("")
 
-    val titleResId = BehaviorRelay.createDefault(0)
+    private val titleResId = BehaviorRelay.createDefault(0)
 
-    val menuItems = mutableListOf<VMenu>()
+    private val menuItems = mutableListOf<VMenu>()
 
     /**
      * Need for [titleResId]
      * */
-    var resources: (() -> Resources)? = null
+    private var resources: (() -> Resources)? = null
 
     override fun createView(context: Context): Toolbar = Toolbar(context)
 
-    override fun initSubscriptions(view: Toolbar) {
+    override fun initSubscriptions(view: Toolbar?) {
         super.initSubscriptions(view)
-        title.subscribe(view::setTitle)
+        title
+            .subscribe { view?.title = it }
+            .addToComposite()
     }
 
     override fun build(context: Context): Toolbar {
@@ -46,14 +49,14 @@ class VToolbar : VContainer<Toolbar>() {
         isLoading: BehaviorRelay<Boolean>? = null,
         init: VMenu.() -> Unit
     ) {
-        val vMenu = VMenu(title)
+        val vMenu = VMenu(title) { addToComposite() }
         vMenu.iconResId = iconResId
         vMenu.isLoading = isLoading
         vMenu.init()
         menuItems += vMenu
     }
 
-    class VMenu(val title: String) {
+    class VMenu(private val title: String, private val addToComposite: Disposable.() -> Unit) {
 
         var isLoading: BehaviorRelay<Boolean>? = null
 
@@ -66,10 +69,14 @@ class VToolbar : VContainer<Toolbar>() {
         fun inflate(menu: Menu, context: Context) {
             val menuItem = menu.add(title)
 
-            val imageView = ImageView(context).apply {
+            val imageView: ImageView? = ImageView(context).apply {
                 iconResId?.let(::setImageResource)
                 val typedValue = TypedValue()
-                context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, typedValue, true)
+                context.theme.resolveAttribute(
+                    android.R.attr.selectableItemBackgroundBorderless,
+                    typedValue,
+                    true
+                )
                 setBackgroundResource(typedValue.resourceId)
                 setPadding(2 * resources.displayMetrics.density.toInt())
 
@@ -77,20 +84,22 @@ class VToolbar : VContainer<Toolbar>() {
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 ).apply { addRule(RelativeLayout.CENTER_IN_PARENT) }
-                onClick?.let { onClick -> setOnClickListener { onClick() }}
+                onClick?.let { onClick -> setOnClickListener { onClick() } }
             }
 
-            val progressBar = ProgressBar(context).apply {
+            val progressBar: ProgressBar? = ProgressBar(context).apply {
                 layoutParams = RelativeLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 ).apply { addRule(RelativeLayout.CENTER_IN_PARENT) }
             }
 
-            isLoading?.subscribe {
-                imageView.visibility = if (it) View.GONE else View.VISIBLE
-                progressBar.visibility = if (it) View.VISIBLE else View.INVISIBLE
-            }
+            isLoading
+                ?.subscribe {
+                    imageView?.visibility = if (it) View.GONE else View.VISIBLE
+                    progressBar?.visibility = if (it) View.VISIBLE else View.INVISIBLE
+                }
+                ?.addToComposite()
 
             menuItem.actionView = RelativeLayout(context).apply {
                 layoutParams = ViewGroup.LayoutParams(
