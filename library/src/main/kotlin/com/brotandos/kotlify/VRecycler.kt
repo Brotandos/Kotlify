@@ -15,7 +15,8 @@ class VRecycler<E>(val items: BehaviorRelay<List<E>>) : VElement<RecyclerView>()
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): KotlifyViewHolder {
             val vElement = vItem?.invoke(items.value[viewType])
                 ?: throw RuntimeException("vItem is not set")
-            val view = vElement.build(parent.context)
+            // TODO find proper way to pass KoltifyContext here
+            val view = vElement.build(parent.context, KotlifyContext())
             return KotlifyViewHolder(view, vElement)
         }
 

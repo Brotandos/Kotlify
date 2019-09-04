@@ -34,8 +34,8 @@ class VToolbar : VContainer<Toolbar>() {
             .addToComposite()
     }
 
-    override fun build(context: Context): Toolbar {
-        val view = super.build(context)
+    override fun build(context: Context, kotlifyContext: KotlifyContext): Toolbar {
+        val view = super.build(context, kotlifyContext)
         resources = { context.resources }
         val menu = view.menu
         menu.clear()

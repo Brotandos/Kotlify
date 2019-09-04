@@ -4,7 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 
 class KotlifyContext(
-    val router: Router
+    val router: Router? = null
 )
 
 class Router(val containerId: Int) {

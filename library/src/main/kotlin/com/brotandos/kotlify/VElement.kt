@@ -9,13 +9,11 @@ import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 
-abstract class VElement<V : View> : Disposable {
+abstract class VElement<V : View> : VEntity<V>() {
 
     private var isDark: BehaviorRelay<Boolean>? = null
 
     private var backgroundColors: Pair<Int, Int>? = null
-
-    private val disposables = CompositeDisposable()
 
     open var vShow: BehaviorRelay<Boolean>? = null
 
@@ -23,13 +21,11 @@ abstract class VElement<V : View> : Disposable {
 
     open var isEnabled: BehaviorRelay<Boolean>? = null
 
-    open var navigatesTo: Fragment? = null
+    open var navigatesTo: (() -> Fragment)? = null
 
     open var onClick: (() -> Unit)? = null
 
     open var viewInit: (V.() -> Unit)? = null
-
-    open var kotlifyContext: KotlifyContext? = null
 
     var layoutInit: (V.() -> Unit)? = null
 
@@ -88,7 +84,7 @@ abstract class VElement<V : View> : Disposable {
         viewInit = init
     }
 
-    open fun build(context: Context): V {
+    override fun build(context: Context, kotlifyContext: KotlifyContext): V {
         val view = createView(context)
         viewInit?.invoke(view)
         layoutInit?.invoke(view)
@@ -96,23 +92,12 @@ abstract class VElement<V : View> : Disposable {
         onClick?.let {
             view.setOnClickListener {
                 it()
-                navigatesTo?.let { fragment ->
+                navigatesTo?.let { getFragment ->
                     view.isEnabled = false
-                    kotlifyContext?.router?.navigateTo(fragment)
+                    kotlifyContext.router?.navigateTo(getFragment())
                 }
             }
         }
         return view
-    }
-
-    @CallSuper
-    override fun dispose() {
-        disposables.dispose()
-    }
-
-    override fun isDisposed(): Boolean = disposables.isDisposed
-
-    protected fun Disposable.addToComposite() {
-        disposables.add(this)
     }
 }
