@@ -3,7 +3,7 @@ package com.brotandos.kotlify
 import android.content.Context
 import androidx.appcompat.app.AlertDialog
 
-class VDialog : DialogElement<AlertDialog>() {
+class VDialog : ModalElement<AlertDialog>() {
 
     var message: String? = null
 

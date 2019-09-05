@@ -3,7 +3,7 @@ package com.brotandos.kotlify
 import android.content.Context
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
-class VBottomSheetDialog : DialogElement<BottomSheetDialog>() {
+class VBottomSheetDialog : ModalElement<BottomSheetDialog>() {
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): BottomSheetDialog {
         val dialog = BottomSheetDialog(context)

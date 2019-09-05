@@ -7,7 +7,7 @@ import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
 import com.jakewharton.rxrelay2.BehaviorRelay
 
-abstract class MarkupElement<V : View> : UiEntity<V>() {
+abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     private var isDark: BehaviorRelay<Boolean>? = null
 
@@ -24,8 +24,6 @@ abstract class MarkupElement<V : View> : UiEntity<V>() {
     open var viewInit: (V.() -> Unit)? = null
 
     var layoutInit: (V.() -> Unit)? = null
-
-    val Int.dp get() = this
 
     abstract fun createView(context: Context): V
 
@@ -52,26 +50,13 @@ abstract class MarkupElement<V : View> : UiEntity<V>() {
             ?.addToComposite()
     }
 
-    inline fun <reified T : ViewGroup.LayoutParams> initLayout(
-        width: Int,
-        height: Int,
-        crossinline init: T.() -> Unit
-    ) {
+    inline fun <reified T : ViewGroup.LayoutParams> initLayout(crossinline init: T.() -> Unit) {
         layoutInit = {
             val constructor = T::class.java.getConstructor(width::class.java, height::class.java)
-            val instance = constructor.newInstance(width, height)
+            val density = context.resources.displayMetrics.density.toInt()
+            val sizeValuePair = size.getValuePair(density)
+            val instance = constructor.newInstance(sizeValuePair.first, sizeValuePair.second)
             instance.init()
-            layoutParams = instance
-        }
-    }
-
-    inline fun <reified T : ViewGroup.LayoutParams> initLayout(
-        width: Int,
-        height: Int
-    ) {
-        layoutInit = {
-            val constructor = T::class.java.getConstructor(width::class.java, height::class.java)
-            val instance = constructor.newInstance(width, height)
             layoutParams = instance
         }
     }

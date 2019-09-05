@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
-abstract class VContainer<V : ViewGroup> : MarkupElement<V>() {
+abstract class VContainer<V : ViewGroup>(size: LayoutSize) : WidgetElement<V>(size), WidgetContainer {
 
     val children = mutableListOf<UiEntity<*>>()
 
@@ -22,8 +22,11 @@ abstract class VContainer<V : ViewGroup> : MarkupElement<V>() {
         return view
     }
 
-    inline fun <reified V : View> vCustom(init: MarkupElement<V>.() -> Unit): MarkupElement<V> {
-        val vElement = object : MarkupElement<V>() {
+    inline fun <reified V : View> vCustom(
+        size: LayoutSize = Earth,
+        init: WidgetElement<V>.() -> Unit
+    ): WidgetElement<V> {
+        val vElement = object : WidgetElement<V>(size) {
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
         }
@@ -32,8 +35,11 @@ abstract class VContainer<V : ViewGroup> : MarkupElement<V>() {
         return vElement
     }
 
-    inline fun <reified V : ViewGroup> vContainer(init: VContainer<V>.() -> Unit): VContainer<V> {
-        val vContainer = object : VContainer<V>() {
+    inline fun <reified V : ViewGroup> vContainer(
+        size: LayoutSize,
+        init: VContainer<V>.() -> Unit
+    ): VContainer<V> {
+        val vContainer = object : VContainer<V>(size) {
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
         }
@@ -41,15 +47,15 @@ abstract class VContainer<V : ViewGroup> : MarkupElement<V>() {
         return vContainer
     }
 
-    fun vToolbar(init: VToolbar.() -> Unit): Disposable {
-        val vToolbar = VToolbar()
+    override fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): Disposable {
+        val vToolbar = VToolbar(size)
         vToolbar.init()
         children += vToolbar
         return vToolbar
     }
 
-    fun <E> vRecycler(items: BehaviorRelay<List<E>>, init: VRecycler<E>.() -> Unit): Disposable {
-        val vRecycler = VRecycler(items)
+    override fun <E> vRecycler(size: LayoutSize, items: BehaviorRelay<List<E>>, init: VRecycler<E>.() -> Unit): Disposable {
+        val vRecycler = VRecycler(size, items)
         vRecycler.init()
         children += vRecycler
         return vRecycler
@@ -69,7 +75,7 @@ abstract class VContainer<V : ViewGroup> : MarkupElement<V>() {
         return vBottomSheetDialog
     }
 
-    operator fun MarkupElement<*>.unaryPlus(): Disposable {
+    operator fun WidgetElement<*>.unaryPlus(): Disposable {
         children += this
         return this
     }
@@ -81,7 +87,7 @@ abstract class VContainer<V : ViewGroup> : MarkupElement<V>() {
 }
 
 inline fun <reified V : ViewGroup> Activity.vContainer(init: VContainer<V>.() -> Unit): Disposable {
-    val builder = object : VContainer<V>() {
+    val builder = object : VContainer<V>(Air) {
         override fun createView(context: Context): V =
             KotlifyInternals.initiateView(context, V::class.java)
     }

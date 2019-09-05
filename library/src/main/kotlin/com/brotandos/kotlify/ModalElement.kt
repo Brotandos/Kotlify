@@ -8,7 +8,7 @@ import androidx.annotation.CallSuper
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
-abstract class DialogElement<D: Dialog> : UiEntity<D>() {
+abstract class ModalElement<D: Dialog> : UiEntity<D>(), WidgetContainer {
 
     var titleResId: Int? = null
 
@@ -16,7 +16,7 @@ abstract class DialogElement<D: Dialog> : UiEntity<D>() {
 
     var cancellable: Boolean? = null
 
-    var vContent: MarkupElement<*>? = null
+    var vContent: WidgetElement<*>? = null
 
     @CallSuper
     protected open fun initSubscriptions(dialog: D) {
@@ -25,8 +25,8 @@ abstract class DialogElement<D: Dialog> : UiEntity<D>() {
             ?.addToComposite()
     }
 
-    inline fun <reified V : View> vCustom(init: MarkupElement<V>.() -> Unit): MarkupElement<V> {
-        val vElement = object : MarkupElement<V>() {
+    inline fun <reified V : View> vCustom(size: LayoutSize, init: WidgetElement<V>.() -> Unit): WidgetElement<V> {
+        val vElement = object : WidgetElement<V>(size) {
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
         }
@@ -36,7 +36,7 @@ abstract class DialogElement<D: Dialog> : UiEntity<D>() {
     }
 
     inline fun <reified V : ViewGroup> vContainer(init: VContainer<V>.() -> Unit): VContainer<V> {
-        val vContainer = object : VContainer<V>() {
+        val vContainer = object : VContainer<V>(Air) {
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
         }
@@ -45,15 +45,15 @@ abstract class DialogElement<D: Dialog> : UiEntity<D>() {
         return vContainer
     }
 
-    fun vToolbar(init: VToolbar.() -> Unit): Disposable {
-        val vToolbar = VToolbar()
+    override fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): Disposable {
+        val vToolbar = VToolbar(size)
         vToolbar.init()
         vContent = vToolbar
         return vToolbar
     }
 
-    fun <E> vRecycler(items: BehaviorRelay<List<E>>, init: VRecycler<E>.() -> Unit): Disposable {
-        val vRecycler = VRecycler(items)
+    override fun <E> vRecycler(size: LayoutSize, items: BehaviorRelay<List<E>>, init: VRecycler<E>.() -> Unit): Disposable {
+        val vRecycler = VRecycler(size, items)
         vRecycler.init()
         vContent = vRecycler
         return vRecycler

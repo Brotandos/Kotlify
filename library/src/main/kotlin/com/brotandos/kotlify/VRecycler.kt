@@ -8,11 +8,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
-class VRecycler<E>(val itemsRelay: BehaviorRelay<List<E>>) : MarkupElement<RecyclerView>() {
+class VRecycler<E>(
+    size: LayoutSize,
+    val itemsRelay: BehaviorRelay<List<E>>
+) : WidgetElement<RecyclerView>(size) {
 
     private val items: List<E> get() = itemsRelay.value
 
-    var vItem: ((E) -> MarkupElement<*>)? = null
+    var vItem: ((E) -> WidgetElement<*>)? = null
 
     private var adapter: RecyclerView.Adapter<KotlifyViewHolder>? = null
 
@@ -33,8 +36,8 @@ class VRecycler<E>(val itemsRelay: BehaviorRelay<List<E>>) : MarkupElement<Recyc
         return view
     }
 
-    fun vItem(itemView: VContainer<*>.(E) -> MarkupElement<*>) {
-        val vContainer = object : VContainer<FrameLayout>() {
+    fun vItem(itemView: VContainer<*>.(E) -> WidgetElement<*>) {
+        val vContainer = object : VContainer<FrameLayout>(Air) {
             override fun createView(context: Context): FrameLayout = FrameLayout(context)
         }
         vItem = { vContainer.itemView(it) }
@@ -62,11 +65,11 @@ class VRecycler<E>(val itemsRelay: BehaviorRelay<List<E>>) : MarkupElement<Recyc
 
     class KotlifyViewHolder(
         itemView: View,
-        private val markupElement: MarkupElement<*>
+        private val widgetElement: WidgetElement<*>
     ) : RecyclerView.ViewHolder(itemView), Disposable {
 
-        override fun dispose() = markupElement.dispose()
+        override fun dispose() = widgetElement.dispose()
 
-        override fun isDisposed(): Boolean = markupElement.isDisposed
+        override fun isDisposed(): Boolean = widgetElement.isDisposed
     }
 }

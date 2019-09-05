@@ -12,7 +12,7 @@ import androidx.core.view.setPadding
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
-class VToolbar : VContainer<Toolbar>() {
+class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
 
     private val title = BehaviorRelay.createDefault("")
 
