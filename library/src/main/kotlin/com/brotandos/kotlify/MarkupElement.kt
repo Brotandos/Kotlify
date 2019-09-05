@@ -6,16 +6,12 @@ import android.view.ViewGroup
 import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
 import com.jakewharton.rxrelay2.BehaviorRelay
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 
-abstract class VElement<V : View> : VEntity<V>() {
+abstract class MarkupElement<V : View> : UiEntity<V>() {
 
     private var isDark: BehaviorRelay<Boolean>? = null
 
     private var backgroundColors: Pair<Int, Int>? = null
-
-    open var vShow: BehaviorRelay<Boolean>? = null
 
     // open var isInvisible: BehaviorRelay<Boolean>? = null
 

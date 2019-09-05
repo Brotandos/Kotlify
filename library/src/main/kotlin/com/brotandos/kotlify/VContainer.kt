@@ -4,13 +4,12 @@ import android.app.Activity
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AlertDialog
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
-abstract class VContainer<V : ViewGroup> : VElement<V>() {
+abstract class VContainer<V : ViewGroup> : MarkupElement<V>() {
 
-    val children = mutableListOf<VEntity<*>>()
+    val children = mutableListOf<UiEntity<*>>()
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): V {
         val view = super.build(context, kotlifyContext)
@@ -23,14 +22,23 @@ abstract class VContainer<V : ViewGroup> : VElement<V>() {
         return view
     }
 
-    inline fun <reified V : View> vCustom(init: VElement<V>.() -> Unit): VElement<V> {
-        val vElement = object : VElement<V>() {
+    inline fun <reified V : View> vCustom(init: MarkupElement<V>.() -> Unit): MarkupElement<V> {
+        val vElement = object : MarkupElement<V>() {
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
         }
         vElement.init()
         children += vElement
         return vElement
+    }
+
+    inline fun <reified V : ViewGroup> vContainer(init: VContainer<V>.() -> Unit): VContainer<V> {
+        val vContainer = object : VContainer<V>() {
+            override fun createView(context: Context): V =
+                KotlifyInternals.initiateView(context, V::class.java)
+        }
+        vContainer.init()
+        return vContainer
     }
 
     fun vToolbar(init: VToolbar.() -> Unit): Disposable {
@@ -54,7 +62,14 @@ abstract class VContainer<V : ViewGroup> : VElement<V>() {
         return vDialog
     }
 
-    operator fun VElement<*>.unaryPlus(): Disposable {
+    fun vBottomSheetDialog(init: VBottomSheetDialog.() -> Unit): Disposable {
+        val vBottomSheetDialog = VBottomSheetDialog()
+        vBottomSheetDialog.init()
+        children += vBottomSheetDialog
+        return vBottomSheetDialog
+    }
+
+    operator fun MarkupElement<*>.unaryPlus(): Disposable {
         children += this
         return this
     }

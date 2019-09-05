@@ -2,12 +2,15 @@ package com.brotandos.kotlify
 
 import android.content.Context
 import androidx.annotation.CallSuper
+import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 
-abstract class VEntity<T> : Disposable {
+abstract class UiEntity<T> : Disposable {
 
     private val disposables = CompositeDisposable()
+
+    open var vShow: BehaviorRelay<Boolean>? = null
 
     override fun isDisposed(): Boolean = disposables.isDisposed
 

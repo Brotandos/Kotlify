@@ -6,7 +6,7 @@
 * Show and hide BottomSheetDialog
 
 ### MAJOR TODO
-* Implement recyclerview's several viewTypes
+* Implement recyclerview's several viewTypes ([explanation of recyclerView](https://ziginsider.github.io/RecyclerView/))
 * Implement toolbar badges
 * Implement dialog (alert, bottomSheetView)
 * Implement menu for drawer and bottomNavView

@@ -6,10 +6,13 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.jakewharton.rxrelay2.BehaviorRelay
+import io.reactivex.disposables.Disposable
 
-class VRecycler<E>(val items: BehaviorRelay<List<E>>) : VElement<RecyclerView>() {
+class VRecycler<E>(val itemsRelay: BehaviorRelay<List<E>>) : MarkupElement<RecyclerView>() {
 
-    var vItem: ((E) -> VElement<*>)? = null
+    private val items: List<E> get() = itemsRelay.value
+
+    var vItem: ((E) -> MarkupElement<*>)? = null
 
     private var adapter: RecyclerView.Adapter<KotlifyViewHolder>? = null
 
@@ -17,7 +20,7 @@ class VRecycler<E>(val items: BehaviorRelay<List<E>>) : VElement<RecyclerView>()
 
     override fun initSubscriptions(view: RecyclerView?) {
         super.initSubscriptions(view)
-        items
+        itemsRelay
             .subscribe { adapter?.notifyDataSetChanged() }
             .addToComposite()
     }
@@ -30,7 +33,7 @@ class VRecycler<E>(val items: BehaviorRelay<List<E>>) : VElement<RecyclerView>()
         return view
     }
 
-    fun vItem(itemView: VContainer<*>.(E) -> VElement<*>) {
+    fun vItem(itemView: VContainer<*>.(E) -> MarkupElement<*>) {
         val vContainer = object : VContainer<FrameLayout>() {
             override fun createView(context: Context): FrameLayout = FrameLayout(context)
         }
@@ -38,8 +41,8 @@ class VRecycler<E>(val items: BehaviorRelay<List<E>>) : VElement<RecyclerView>()
     }
 
     private fun getAdapter(kotlifyContext: KotlifyContext) = object : RecyclerView.Adapter<KotlifyViewHolder>() {
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): KotlifyViewHolder {
-            val vElement = vItem?.invoke(items.value[viewType])
+        override fun onCreateViewHolder(parent: ViewGroup, position: Int): KotlifyViewHolder {
+            val vElement = vItem?.invoke(items[position])
                 ?: throw RuntimeException("vItem is not set")
             val view = vElement.build(parent.context, kotlifyContext)
             return KotlifyViewHolder(view, vElement)
@@ -52,16 +55,18 @@ class VRecycler<E>(val items: BehaviorRelay<List<E>>) : VElement<RecyclerView>()
             holder.dispose()
         }
 
-        override fun getItemCount(): Int = items.value.size
+        override fun getItemCount(): Int = itemsRelay.value.size
 
         override fun getItemViewType(position: Int) = position
     }
 
     class KotlifyViewHolder(
         itemView: View,
-        private val vElement: VElement<*>
-    ) : RecyclerView.ViewHolder(itemView) {
+        private val markupElement: MarkupElement<*>
+    ) : RecyclerView.ViewHolder(itemView), Disposable {
 
-        fun dispose() = vElement.dispose()
+        override fun dispose() = markupElement.dispose()
+
+        override fun isDisposed(): Boolean = markupElement.isDisposed
     }
 }
