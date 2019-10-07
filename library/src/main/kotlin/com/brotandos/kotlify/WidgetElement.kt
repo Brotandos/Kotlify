@@ -13,11 +13,13 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     private var backgroundColors: Pair<Int, Int>? = null
 
+    // TODO implement
     // open var isInvisible: BehaviorRelay<Boolean>? = null
 
-    open var isEnabled: BehaviorRelay<Boolean>? = null
+    // TODO implement
+    // open var navigatesTo: (() -> Fragment)? = null
 
-    open var navigatesTo: (() -> Fragment)? = null
+    open var isEnabled: BehaviorRelay<Boolean>? = null
 
     open var onClick: (() -> Unit)? = null
 
@@ -34,19 +36,20 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     @CallSuper
     protected open fun initSubscriptions(view: V?) {
+        view ?: return
         isDark
             ?.subscribe {
                 val (light, dark) = backgroundColors ?: return@subscribe
-                view?.setBackgroundColor(if (it) dark else light)
+                view.setBackgroundColor(if (it) dark else light)
             }
             ?.addToComposite()
 
         vShow
-            ?.subscribe { view?.visibility = if (it) View.VISIBLE else View.GONE }
+            ?.subscribe { view.visibility = if (it) View.VISIBLE else View.GONE }
             ?.addToComposite()
 
         isEnabled
-            ?.subscribe { view?.isEnabled = it }
+            ?.subscribe { view.isEnabled = it }
             ?.addToComposite()
     }
 
@@ -67,16 +70,15 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): V {
         val view = createView(context)
+        val density = context.resources.displayMetrics.density.toInt()
+        val (width, height) = size.getValuePair(density)
+        view.layoutParams = ViewGroup.LayoutParams(width, height)
         viewInit?.invoke(view)
         layoutInit?.invoke(view)
         initSubscriptions(view)
-        onClick?.let {
+        onClick?.let { onClick ->
             view.setOnClickListener {
-                it()
-                navigatesTo?.let { getFragment ->
-                    view.isEnabled = false
-                    kotlifyContext.router?.navigateTo(getFragment())
-                }
+                onClick.invoke()
             }
         }
         return view

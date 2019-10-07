@@ -9,7 +9,6 @@ class VBottomSheetDialog : ModalElement<BottomSheetDialog>() {
         val dialog = BottomSheetDialog(context)
         titleResId?.let(dialog::setTitle) ?: title?.let(dialog::setTitle)
         cancellable?.let(dialog::setCancelable)
-        dialog.setOnCancelListener { vShow?.accept(false) }
         initSubscriptions(dialog)
         vContent?.let {
             val view = it.build(context, kotlifyContext)

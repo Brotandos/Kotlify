@@ -2,6 +2,7 @@ package com.brotandos.kotlify
 
 import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
@@ -18,14 +19,31 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(), WidgetContainer {
 
     var vContent: WidgetElement<*>? = null
 
+    var onShow: (() -> Unit)? = null
+
+    var onCancel: (() -> Unit)? = null
+
     @CallSuper
-    protected open fun initSubscriptions(dialog: D) {
+    protected open fun initSubscriptions(dialog: D?) {
+        dialog ?: return
         vShow
             ?.subscribe { if (it) dialog.show() else dialog.hide() }
             ?.addToComposite()
+
+        onShow?.let { onShow ->
+            dialog.setOnShowListener(DialogInterface.OnShowListener { onShow() })
+        }
+
+        dialog.setOnCancelListener(DialogInterface.OnCancelListener {
+            vShow?.accept(false)
+            onCancel?.invoke()
+        })
     }
 
-    inline fun <reified V : View> vCustom(size: LayoutSize, init: WidgetElement<V>.() -> Unit): WidgetElement<V> {
+    inline fun <reified V : View> vCustom(
+        size: LayoutSize,
+        init: WidgetElement<V>.() -> Unit
+    ): WidgetElement<V> {
         val vElement = object : WidgetElement<V>(size) {
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
@@ -52,7 +70,11 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(), WidgetContainer {
         return vToolbar
     }
 
-    override fun <E> vRecycler(size: LayoutSize, items: BehaviorRelay<List<E>>, init: VRecycler<E>.() -> Unit): Disposable {
+    override fun <E> vRecycler(
+        size: LayoutSize,
+        items: BehaviorRelay<List<E>>,
+        init: VRecycler<E>.() -> Unit
+    ): Disposable {
         val vRecycler = VRecycler(size, items)
         vRecycler.init()
         vContent = vRecycler

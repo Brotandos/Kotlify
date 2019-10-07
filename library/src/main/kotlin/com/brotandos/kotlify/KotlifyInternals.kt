@@ -3,6 +3,7 @@ package com.brotandos.kotlify
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
+import com.jakewharton.rxrelay2.BehaviorRelay
 
 object KotlifyInternals {
 
@@ -27,3 +28,10 @@ object KotlifyInternals {
 
     }
 }
+
+infix fun <T> BehaviorRelay<T>.accept(newValue: T) = accept(newValue)
+
+operator fun BehaviorRelay<Int>.plusAssign(number: Int) = accept(value + number)
+operator fun BehaviorRelay<Int>.minusAssign(number: Int) = accept(value - number)
+operator fun BehaviorRelay<Int>.timesAssign(number: Int) = accept(value * number)
+operator fun BehaviorRelay<Int>.divAssign(number: Int) = accept(value / number)

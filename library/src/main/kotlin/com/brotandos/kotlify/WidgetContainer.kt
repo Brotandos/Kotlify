@@ -13,5 +13,9 @@ interface WidgetContainer {
 
     fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): Disposable
 
-    fun <E> vRecycler(size: LayoutSize, items: BehaviorRelay<List<E>>, init: VRecycler<E>.() -> Unit): Disposable
+    fun <E> vRecycler(
+        size: LayoutSize,
+        items: BehaviorRelay<List<E>>,
+        init: VRecycler<E>.() -> Unit
+    ): Disposable
 }

@@ -12,12 +12,12 @@ abstract class UiEntity<T> : Disposable {
 
     open var vShow: BehaviorRelay<Boolean>? = null
 
+    abstract fun build(context: Context, kotlifyContext: KotlifyContext): T
+
     override fun isDisposed(): Boolean = disposables.isDisposed
 
     @CallSuper
     override fun dispose() = disposables.dispose()
 
     protected fun Disposable.addToComposite() = disposables.add(this)
-
-    abstract fun build(context: Context, kotlifyContext: KotlifyContext): T
 }

@@ -16,7 +16,6 @@ class VDialog : ModalElement<AlertDialog>() {
             val view = it.build(context, kotlifyContext)
             builder.setView(view)
         }
-        builder.setOnCancelListener { vShow?.accept(false) }
         val dialog = builder.create()
         initSubscriptions(dialog)
         return dialog
