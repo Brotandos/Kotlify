@@ -4,13 +4,14 @@ import android.app.Activity
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.lifecycle.LifecycleOwner
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
-abstract class VContainer<V : ViewGroup>(size: LayoutSize) : WidgetElement<V>(size), WidgetContainer {
-
-    private var lifecycleObserver: KotlifyLifecycleObserver? = null
+abstract class VContainer<V : ViewGroup>(
+    size: LayoutSize
+) : WidgetElement<V>(size), WidgetContainer{
 
     val children = mutableListOf<UiEntity<*>>()
 
@@ -22,7 +23,6 @@ abstract class VContainer<V : ViewGroup>(size: LayoutSize) : WidgetElement<V>(si
                 view.addView(child)
             }
         }
-        lifecycleObserver = KotlifyLifecycleObserver(this)
         return view
     }
 
@@ -35,6 +35,15 @@ abstract class VContainer<V : ViewGroup>(size: LayoutSize) : WidgetElement<V>(si
                 KotlifyInternals.initiateView(context, V::class.java)
         }
         vElement.init()
+        children += vElement
+        return vElement
+    }
+
+    inline fun <reified V : View> vCustom(size: LayoutSize = Earth): WidgetElement<V> {
+        val vElement = object : WidgetElement<V>(size) {
+            override fun createView(context: Context): V =
+                KotlifyInternals.initiateView(context, V::class.java)
+        }
         children += vElement
         return vElement
     }
@@ -58,11 +67,37 @@ abstract class VContainer<V : ViewGroup>(size: LayoutSize) : WidgetElement<V>(si
         return vToolbar
     }
 
-    override fun <E> vRecycler(size: LayoutSize, items: BehaviorRelay<List<E>>, init: VRecycler<E>.() -> Unit): Disposable {
+    override fun <E> vRecycler(
+        size: LayoutSize,
+        items: BehaviorRelay<List<E>>,
+        init: VRecycler<E>.() -> Unit
+    ): Disposable {
         val vRecycler = VRecycler(size, items)
         vRecycler.init()
         children += vRecycler
         return vRecycler
+    }
+
+    override fun vVertical(size: LayoutSize, init: VContainer<LinearLayout>.() -> Unit): Disposable {
+        val vContainer = object : VContainer<LinearLayout>(size) {
+            override fun createView(context: Context): LinearLayout =
+                LinearLayout(context)
+                    .also { it.orientation = LinearLayout.VERTICAL }
+        }
+        vContainer.init()
+        children += vContainer
+        return vContainer
+    }
+
+    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): Disposable {
+        val vContainer = object : VContainer<LinearLayout>(Earth) {
+            override fun createView(context: Context): LinearLayout =
+                LinearLayout(context)
+                    .also { it.orientation = LinearLayout.VERTICAL }
+        }
+        vContainer.init()
+        children += vContainer
+        return vContainer
     }
 
     operator fun WidgetElement<*>.unaryPlus(): Disposable {
@@ -74,58 +109,4 @@ abstract class VContainer<V : ViewGroup>(size: LayoutSize) : WidgetElement<V>(si
         super.dispose()
         children.forEach(Disposable::dispose)
     }
-
-    fun vDialog(init: VDialog.() -> Unit): Disposable {
-        val vDialog = VDialog()
-        vDialog.init()
-        children += vDialog
-        return vDialog
-    }
-
-    fun vBottomSheetDialog(init: VBottomSheetDialog.() -> Unit): Disposable {
-        val vBottomSheetDialog = VBottomSheetDialog()
-        vBottomSheetDialog.init()
-        children += vBottomSheetDialog
-        return vBottomSheetDialog
-    }
-
-    fun disposeOnViewDestroyed(lifecycleOwner: LifecycleOwner) {
-        KotlifyLifecycleObserver(this).let {
-            lifecycleObserver = it
-            lifecycleOwner.lifecycle.addObserver(it)
-        }
-    }
-
-    fun clearObservers(lifecycleOwner: LifecycleOwner) {
-        lifecycleObserver?.let(lifecycleOwner.lifecycle::removeObserver)
-    }
-}
-
-inline fun <reified V : ViewGroup> Activity.vContainer(init: VContainer<V>.() -> Unit): Disposable {
-    val builder = object : VContainer<V>(Air) {
-        override fun createView(context: Context): V =
-            KotlifyInternals.initiateView(context, V::class.java)
-    }
-    builder.init()
-    val kotlifyContext = KotlifyContext()
-    setContentView(builder.build(this, kotlifyContext))
-    return builder
-}
-
-inline fun <reified V : ViewGroup> Activity.vContainer(
-    lifecycleOwner: LifecycleOwner,
-    vContainerOwner: VContainerOwner,
-    init: VContainer<V>.() -> Unit
-): VContainer<*> {
-    val vContainer = object : VContainer<V>(Air) {
-        override fun createView(context: Context): V =
-            KotlifyInternals.initiateView(context, V::class.java)
-    }
-    vContainer.init()
-    val kotlifyContext = KotlifyContext()
-    setContentView(vContainer.build(this, kotlifyContext))
-    vContainer.disposeOnViewDestroyed(lifecycleOwner)
-    vContainerOwner.vContainer?.clearObservers(lifecycleOwner)
-    vContainerOwner.vContainer = vContainer
-    return vContainer
 }

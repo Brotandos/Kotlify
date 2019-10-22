@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.annotation.CallSuper
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
@@ -79,6 +80,31 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(), WidgetContainer {
         vRecycler.init()
         vContent = vRecycler
         return vRecycler
+    }
+
+    override fun vVertical(
+        size: LayoutSize,
+        init: VContainer<LinearLayout>.() -> Unit
+    ): Disposable {
+        val vContainer = object : VContainer<LinearLayout>(size) {
+            override fun createView(context: Context): LinearLayout =
+                LinearLayout(context)
+                    .also { it.orientation = LinearLayout.VERTICAL }
+        }
+        vContainer.init()
+        vContent = vContainer
+        return vContainer
+    }
+
+    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): Disposable {
+        val vContainer = object : VContainer<LinearLayout>(Air) {
+            override fun createView(context: Context): LinearLayout =
+                LinearLayout(context)
+                    .also { it.orientation = LinearLayout.VERTICAL }
+        }
+        vContainer.init()
+        vContent = vContainer
+        return vContainer
     }
 
     override fun dispose() {
