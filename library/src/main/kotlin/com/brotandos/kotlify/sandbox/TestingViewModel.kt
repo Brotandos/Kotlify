@@ -26,7 +26,7 @@ class TestingViewModel : ViewModel() {
     private val listRelay = BehaviorRelay.createDefault(listOf(1, 2, 3, 4, 5))
     private val isBottomSheetButtonVisible = BehaviorRelay.createDefault(false)
 
-    lateinit var vRoot: VContainer<*>
+    private lateinit var vRoot: VContainer<*>
 
     fun markup(activity: AppCompatActivity) {
         vRoot = activity.vRoot<LinearLayout>(activity, activity as VRootOwner) {
@@ -52,6 +52,7 @@ class TestingViewModel : ViewModel() {
             }
 
             vCustom<Button>(200.dp x 200.dp) {
+                id = R.id.bottom_sheet_dialog_trigger
                 initLayout<LinearLayout.LayoutParams> { gravity = Gravity.START }
                 initView {
                     text = "Show bottom sheet"
@@ -59,15 +60,13 @@ class TestingViewModel : ViewModel() {
                         isBottomDialog.accept(true)
                     }
                 }
-                isAppeared = isBottomSheetButtonVisible
             }
 
             vCustom<TextView> {
+                id = R.id.hello_world_text_view
                 isAppeared = isTextVisible
 
-                initLayout<LinearLayout.LayoutParams> {
-                    gravity = Gravity.CENTER_HORIZONTAL
-                }
+                initLayout<LinearLayout.LayoutParams> { gravity = Gravity.CENTER_HORIZONTAL }
                 initView {
                     text = "Hello, World!"
                     setTextColor(0xFFFF0000.toInt())

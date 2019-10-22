@@ -67,12 +67,10 @@ inline fun <reified V : ViewGroup> Activity.vRoot(
             V::class.java
         )
     }
-    val builder =
-        VRoot(Air, createViewGroup)
-    builder.init()
-    val view = builder.build(this, KotlifyContext())
+    val vRoot = VRoot(Air, createViewGroup).also(init)
+    val view = vRoot.build(this, KotlifyContext())
     setContentView(view)
-    return builder
+    return vRoot
 }
 
 inline fun <reified V : ViewGroup> Activity.vRoot(
@@ -81,14 +79,9 @@ inline fun <reified V : ViewGroup> Activity.vRoot(
     init: VRoot<V>.() -> Unit
 ): VRoot<*> {
     val createViewGroup = {
-        KotlifyInternals.initiateView(
-            this,
-            V::class.java
-        )
+        KotlifyInternals.initiateView(this, V::class.java)
     }
-    val vContainer =
-        VRoot(Air, createViewGroup)
-    vContainer.init()
+    val vContainer = VRoot(Air, createViewGroup).also(init)
     val view = vContainer.build(this, KotlifyContext())
     setContentView(view)
     vContainer.disposeOnViewDestroyed(lifecycleOwner)

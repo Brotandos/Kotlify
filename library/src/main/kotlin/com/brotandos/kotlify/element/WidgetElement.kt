@@ -12,7 +12,11 @@ import com.brotandos.kotlify.common.NoGetterException
 import com.jakewharton.rxrelay2.BehaviorRelay
 import java.lang.RuntimeException
 
+const val ID_NOT_SET = -1
+
 abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
+
+    var id = ID_NOT_SET
 
     private var isDarkRelay: BehaviorRelay<Boolean>? = null
 
@@ -77,6 +81,9 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): V {
         val view = createView(context)
+        if (id != ID_NOT_SET) {
+            view.id = id
+        }
         val density = context.resources.displayMetrics.density.toInt()
         val (width, height) = size.getValuePair(density)
         view.layoutParams = ViewGroup.LayoutParams(width, height)
