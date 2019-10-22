@@ -1,7 +1,8 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.container.modal
 
 import android.content.Context
 import androidx.appcompat.app.AlertDialog
+import com.brotandos.kotlify.common.KotlifyContext
 
 class VDialog : ModalElement<AlertDialog>() {
 

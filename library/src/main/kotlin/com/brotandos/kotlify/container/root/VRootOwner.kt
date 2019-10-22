@@ -1,4 +1,4 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.container.root
 
 interface VRootOwner {
 

@@ -1,17 +1,22 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.container
 
-import android.app.Activity
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.lifecycle.LifecycleOwner
+import com.brotandos.kotlify.common.Earth
+import com.brotandos.kotlify.common.KotlifyContext
+import com.brotandos.kotlify.common.KotlifyInternals
+import com.brotandos.kotlify.common.LayoutSize
+import com.brotandos.kotlify.element.UiEntity
+import com.brotandos.kotlify.element.VRecycler
+import com.brotandos.kotlify.element.WidgetElement
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
 abstract class VContainer<V : ViewGroup>(
     size: LayoutSize
-) : WidgetElement<V>(size), WidgetContainer{
+) : WidgetElement<V>(size), WidgetContainer {
 
     val children = mutableListOf<UiEntity<*>>()
 
@@ -72,7 +77,7 @@ abstract class VContainer<V : ViewGroup>(
         items: BehaviorRelay<List<E>>,
         init: VRecycler<E>.() -> Unit
     ): Disposable {
-        val vRecycler = VRecycler(size, items)
+        val vRecycler = VRecycler(size = size, itemsRelay = items)
         vRecycler.init()
         children += vRecycler
         return vRecycler

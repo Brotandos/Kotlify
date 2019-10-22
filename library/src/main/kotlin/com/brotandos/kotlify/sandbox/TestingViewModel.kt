@@ -1,4 +1,4 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.sandbox
 
 import android.graphics.Color
 import android.view.Gravity
@@ -8,6 +8,11 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.brotandos.kotlify.R
+import com.brotandos.kotlify.common.Water
+import com.brotandos.kotlify.container.VContainer
+import com.brotandos.kotlify.container.root.VRootOwner
+import com.brotandos.kotlify.container.root.vRoot
 import com.jakewharton.rxrelay2.BehaviorRelay
 
 class TestingViewModel : ViewModel() {
@@ -33,7 +38,7 @@ class TestingViewModel : ViewModel() {
             vToolbar(50.dp.water) {
                 initView { setBackgroundColor(0xFFAAAADF.toInt()) }
                 vAction("Check", R.drawable.ic_send, isLoading) {
-                    onClick = {
+                    onClick {
                         isDialog.accept(true)
                         isLoading2.accept(false)
                         isBottomSheetButtonVisible.accept(!isBottomSheetButtonVisible.value)
@@ -42,7 +47,7 @@ class TestingViewModel : ViewModel() {
                 vAction("Test") {
                     iconResId = R.drawable.ic_camera
                     this.isLoading = isLoading2
-                    onClick = { isLoading2.accept(true) }
+                    onClick { isLoading2.accept(true) }
                 }
             }
 
@@ -54,11 +59,11 @@ class TestingViewModel : ViewModel() {
                         isBottomDialog.accept(true)
                     }
                 }
-                vShow = isBottomSheetButtonVisible
+                isAppeared = isBottomSheetButtonVisible
             }
 
             vCustom<TextView> {
-                vShow = isTextVisible
+                isAppeared = isTextVisible
 
                 initLayout<LinearLayout.LayoutParams> {
                     gravity = Gravity.CENTER_HORIZONTAL
@@ -82,26 +87,26 @@ class TestingViewModel : ViewModel() {
             }
 
             vDialog {
-                vShow = isDialog
+                isAppeared = isDialog
                 title = "Hello, World!"
 
                 vContainer<LinearLayout> {
                     initView { orientation = LinearLayout.VERTICAL }
-                    vCustom<Button> { }
-                    vCustom<Button> { }
+                    vCustom<Button>()
+                    vCustom<Button>()
                 }
             }
 
             vBottomSheetDialog {
-                vShow = isBottomDialog
+                isAppeared = isBottomDialog
                 title = "Hello, World!"
 
                 vContainer<LinearLayout> {
                     initView { orientation = LinearLayout.VERTICAL }
                     vCustom<Button> {
-                        onClick = { isBottomDialog.accept(false) }
+                        onClick { isBottomDialog.accept(false) }
                     }
-                    vCustom<Button> {}
+                    vCustom<Button>()
                 }
             }
         }

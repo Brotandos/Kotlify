@@ -1,4 +1,4 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.common
 
 import android.content.Context
 import android.util.AttributeSet
@@ -6,6 +6,10 @@ import android.view.View
 import com.jakewharton.rxrelay2.BehaviorRelay
 
 object KotlifyInternals {
+
+    const val NO_GETTER: String = "Property does not have a getter"
+
+    fun <T> noGetter(): T = throw NoGetterException
 
     /**
      * Thanks to anko library
@@ -30,6 +34,7 @@ object KotlifyInternals {
 }
 
 infix fun <T> BehaviorRelay<T>.accept(newValue: T) = accept(newValue)
+fun <T>BehaviorRelay<T>.reAccept() = accept(value)
 
 operator fun BehaviorRelay<Int>.plusAssign(number: Int) = accept(value + number)
 operator fun BehaviorRelay<Int>.minusAssign(number: Int) = accept(value - number)

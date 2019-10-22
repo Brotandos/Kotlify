@@ -1,4 +1,4 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.common
 
 import android.view.ViewGroup
 
@@ -6,13 +6,25 @@ sealed class LayoutSize(val width: LayoutLength, val height: LayoutLength) {
     open fun getValuePair(density: Int): Pair<Int, Int> = width.coefficient to height.coefficient
 }
 
-object Earth : LayoutSize(WrapContent, WrapContent)
+object Earth : LayoutSize(
+    WrapContent,
+    WrapContent
+)
 
-object Water : LayoutSize(MatchParent, WrapContent)
+object Water : LayoutSize(
+    MatchParent,
+    WrapContent
+)
 
-object Fire : LayoutSize(WrapContent, MatchParent)
+object Fire : LayoutSize(
+    WrapContent,
+    MatchParent
+)
 
-object Air : LayoutSize(MatchParent, MatchParent)
+object Air : LayoutSize(
+    MatchParent,
+    MatchParent
+)
 
 class CustomSize(width: LayoutLength, height: LayoutLength) : LayoutSize(width, height) {
 
@@ -34,5 +46,6 @@ class CustomLength(coefficient: Int) : LayoutLength(coefficient) {
     override fun getValue(density: Int): Int =
         if (coefficient == 0) 0 else density * coefficient
 
-    infix fun x(height: CustomLength) = CustomSize(this, height)
+    infix fun x(height: CustomLength) =
+        CustomSize(this, height)
 }

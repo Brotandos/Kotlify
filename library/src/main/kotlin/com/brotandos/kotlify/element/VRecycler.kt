@@ -1,23 +1,27 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.element
 
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.recyclerview.widget.RecyclerView
+import com.brotandos.kotlify.common.Air
+import com.brotandos.kotlify.common.KotlifyContext
+import com.brotandos.kotlify.common.LayoutSize
+import com.brotandos.kotlify.container.VContainer
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
 class VRecycler<E>(
-    size: LayoutSize,
-    val itemsRelay: BehaviorRelay<List<E>>
+    private val itemsRelay: BehaviorRelay<List<E>>,
+    size: LayoutSize
 ) : WidgetElement<RecyclerView>(size) {
 
     private val items: List<E> get() = itemsRelay.value
 
-    var vItem: ((E) -> WidgetElement<*>)? = null
-
     private var adapter: RecyclerView.Adapter<KotlifyViewHolder>? = null
+
+    private var vItem: ((E) -> WidgetElement<*>)? = null
 
     override fun createView(context: Context): RecyclerView = RecyclerView(context)
 
@@ -25,14 +29,15 @@ class VRecycler<E>(
         super.initSubscriptions(view)
         itemsRelay
             .subscribe { adapter?.notifyDataSetChanged() }
-            .addToComposite()
+            .untilLifecycleDestroy()
     }
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): RecyclerView {
         val view = super.build(context, kotlifyContext)
-        val adapter = getAdapter(kotlifyContext)
-        view.adapter = adapter
-        this.adapter = adapter
+        getAdapter(kotlifyContext).let {
+            view.adapter = it
+            adapter = it
+        }
         return view
     }
 
@@ -43,7 +48,10 @@ class VRecycler<E>(
         vItem = { vContainer.itemView(it) }
     }
 
-    private fun getAdapter(kotlifyContext: KotlifyContext) = object : RecyclerView.Adapter<KotlifyViewHolder>() {
+    private fun getAdapter(
+        kotlifyContext: KotlifyContext
+    ) = object : RecyclerView.Adapter<KotlifyViewHolder>() {
+
         override fun onCreateViewHolder(parent: ViewGroup, position: Int): KotlifyViewHolder {
             val vElement = vItem?.invoke(items[position])
                 ?: throw RuntimeException("vItem is not set")
@@ -58,7 +66,7 @@ class VRecycler<E>(
             holder.dispose()
         }
 
-        override fun getItemCount(): Int = itemsRelay.value.size
+        override fun getItemCount(): Int = items.size
 
         override fun getItemViewType(position: Int) = position
     }

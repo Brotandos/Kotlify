@@ -1,9 +1,14 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.container.root
 
 import android.app.Activity
 import android.content.Context
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
+import com.brotandos.kotlify.common.*
+import com.brotandos.kotlify.container.VContainer
+import com.brotandos.kotlify.container.WidgetContainer
+import com.brotandos.kotlify.container.modal.VBottomSheetDialog
+import com.brotandos.kotlify.container.modal.VDialog
 import io.reactivex.disposables.Disposable
 
 class VRoot<V : ViewGroup>(
@@ -56,8 +61,14 @@ class VRoot<V : ViewGroup>(
 inline fun <reified V : ViewGroup> Activity.vRoot(
     init: VRoot<V>.() -> Unit
 ): Disposable {
-    val createViewGroup = { KotlifyInternals.initiateView(this, V::class.java) }
-    val builder = VRoot(Air, createViewGroup)
+    val createViewGroup = {
+        KotlifyInternals.initiateView(
+            this,
+            V::class.java
+        )
+    }
+    val builder =
+        VRoot(Air, createViewGroup)
     builder.init()
     val view = builder.build(this, KotlifyContext())
     setContentView(view)
@@ -69,8 +80,14 @@ inline fun <reified V : ViewGroup> Activity.vRoot(
     vRootOwner: VRootOwner,
     init: VRoot<V>.() -> Unit
 ): VRoot<*> {
-    val createViewGroup = { KotlifyInternals.initiateView(this, V::class.java) }
-    val vContainer = VRoot(Air, createViewGroup)
+    val createViewGroup = {
+        KotlifyInternals.initiateView(
+            this,
+            V::class.java
+        )
+    }
+    val vContainer =
+        VRoot(Air, createViewGroup)
     vContainer.init()
     val view = vContainer.build(this, KotlifyContext())
     setContentView(view)

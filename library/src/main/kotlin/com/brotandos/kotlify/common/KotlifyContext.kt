@@ -1,4 +1,4 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.common
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager

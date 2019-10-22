@@ -1,6 +1,7 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.container.modal
 
 import android.content.Context
+import com.brotandos.kotlify.common.KotlifyContext
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
 class VBottomSheetDialog : ModalElement<BottomSheetDialog>() {
@@ -10,10 +11,7 @@ class VBottomSheetDialog : ModalElement<BottomSheetDialog>() {
         titleResId?.let(dialog::setTitle) ?: title?.let(dialog::setTitle)
         cancellable?.let(dialog::setCancelable)
         initSubscriptions(dialog)
-        vContent?.let {
-            val view = it.build(context, kotlifyContext)
-            dialog.setContentView(view)
-        }
+        vContent?.build(context, kotlifyContext)?.let(dialog::setContentView)
         return dialog
     }
 }

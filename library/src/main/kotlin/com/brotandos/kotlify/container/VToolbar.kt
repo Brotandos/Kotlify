@@ -1,4 +1,4 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.container
 
 import android.content.Context
 import android.content.res.Resources
@@ -9,6 +9,8 @@ import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.setPadding
+import com.brotandos.kotlify.common.KotlifyContext
+import com.brotandos.kotlify.common.LayoutSize
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
@@ -31,7 +33,7 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
         super.initSubscriptions(view)
         title
             .subscribe { view?.title = it }
-            .addToComposite()
+            .untilLifecycleDestroy()
     }
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): Toolbar {
@@ -49,7 +51,8 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
         isLoading: BehaviorRelay<Boolean>? = null,
         init: VMenu.() -> Unit
     ) {
-        val vMenu = VMenu(title) { addToComposite() }
+        val vMenu =
+            VMenu(title) { untilLifecycleDestroy() }
         vMenu.iconResId = iconResId
         vMenu.isLoading = isLoading
         vMenu.init()
@@ -62,7 +65,8 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
 
         var iconResId: Int? = null
 
-        var onClick: (() -> Unit)? = null
+        private var onClick: (() -> Unit)? = null
+        fun onClick(f: () -> Unit) { onClick = f }
 
         var vBadge: VBadge? = null
 

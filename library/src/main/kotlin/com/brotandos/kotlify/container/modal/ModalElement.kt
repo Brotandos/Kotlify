@@ -1,4 +1,4 @@
-package com.brotandos.kotlify
+package com.brotandos.kotlify.container.modal
 
 import android.app.Dialog
 import android.content.Context
@@ -7,10 +7,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.annotation.CallSuper
+import com.brotandos.kotlify.common.Air
+import com.brotandos.kotlify.common.KotlifyInternals
+import com.brotandos.kotlify.common.LayoutSize
+import com.brotandos.kotlify.container.VContainer
+import com.brotandos.kotlify.container.VToolbar
+import com.brotandos.kotlify.container.WidgetContainer
+import com.brotandos.kotlify.element.UiEntity
+import com.brotandos.kotlify.element.VRecycler
+import com.brotandos.kotlify.element.WidgetElement
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
-abstract class ModalElement<D: Dialog> : UiEntity<D>(), WidgetContainer {
+abstract class ModalElement<D: Dialog> : UiEntity<D>(),
+    WidgetContainer {
 
     var titleResId: Int? = null
 
@@ -27,16 +37,16 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(), WidgetContainer {
     @CallSuper
     protected open fun initSubscriptions(dialog: D?) {
         dialog ?: return
-        vShow
+        isAppearedRelay
             ?.subscribe { if (it) dialog.show() else dialog.hide() }
-            ?.addToComposite()
+            ?.untilLifecycleDestroy()
 
         onShow?.let { onShow ->
             dialog.setOnShowListener(DialogInterface.OnShowListener { onShow() })
         }
 
         dialog.setOnCancelListener(DialogInterface.OnCancelListener {
-            vShow?.accept(false)
+            isAppearedRelay?.accept(false)
             onCancel?.invoke()
         })
     }
@@ -76,7 +86,7 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(), WidgetContainer {
         items: BehaviorRelay<List<E>>,
         init: VRecycler<E>.() -> Unit
     ): Disposable {
-        val vRecycler = VRecycler(size, items)
+        val vRecycler = VRecycler(itemsRelay = items, size = size)
         vRecycler.init()
         vContent = vRecycler
         return vRecycler
