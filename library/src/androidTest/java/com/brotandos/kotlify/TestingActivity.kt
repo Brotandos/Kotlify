@@ -1,4 +1,4 @@
-package com.brotandos.kotlify.sandbox
+package com.brotandos.kotlify
 
 import android.content.Context
 import android.content.Intent
@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.brotandos.kotlify.common.viewModels
 import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.container.root.VRootOwner
+import com.brotandos.kotlify.sandbox.TestingViewModel
 
 class TestingActivity : AppCompatActivity(), VRootOwner {
 

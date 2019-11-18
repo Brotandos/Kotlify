@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.brotandos.kotlify.R
 import com.brotandos.kotlify.common.Water
+import com.brotandos.kotlify.common.toggleValue
 import com.brotandos.kotlify.container.VContainer
 import com.brotandos.kotlify.container.root.VRootOwner
 import com.brotandos.kotlify.container.root.vRoot
@@ -41,7 +42,7 @@ class TestingViewModel : ViewModel() {
                     onClick {
                         isDialog.accept(true)
                         isLoading2.accept(false)
-                        isBottomSheetButtonVisible.accept(!isBottomSheetButtonVisible.value)
+                        isBottomSheetButtonVisible.toggleValue()
                     }
                 }
                 vAction("Test") {
@@ -58,6 +59,7 @@ class TestingViewModel : ViewModel() {
                     text = "Show bottom sheet"
                     setOnClickListener {
                         isBottomDialog.accept(true)
+                        isDark.toggleValue()
                     }
                 }
             }

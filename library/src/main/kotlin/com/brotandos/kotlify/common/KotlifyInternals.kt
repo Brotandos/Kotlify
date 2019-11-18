@@ -35,6 +35,7 @@ object KotlifyInternals {
 
 infix fun <T> BehaviorRelay<T>.accept(newValue: T) = accept(newValue)
 fun <T>BehaviorRelay<T>.reAccept() = accept(value)
+fun BehaviorRelay<Boolean>.toggleValue() = accept(!value)
 
 operator fun BehaviorRelay<Int>.plusAssign(number: Int) = accept(value + number)
 operator fun BehaviorRelay<Int>.minusAssign(number: Int) = accept(value - number)
