@@ -12,9 +12,6 @@ class Router(val containerId: Int) {
     var fragmentManager: FragmentManager? = null
 
     fun navigateTo(fragment: Fragment) {
-        fragmentManager?.beginTransaction()?.apply {
-            replace(containerId, fragment)
-            commit()
-        }
+        fragmentManager?.commit { replace(containerId, fragment) }
     }
 }

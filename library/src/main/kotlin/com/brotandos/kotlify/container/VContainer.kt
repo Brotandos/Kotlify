@@ -1,6 +1,7 @@
 package com.brotandos.kotlify.container
 
 import android.content.Context
+import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -8,6 +9,9 @@ import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutSize
+import com.brotandos.kotlify.container.modal.VBottomSheetDialog
+import com.brotandos.kotlify.container.modal.VDialog
+import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.element.UiEntity
 import com.brotandos.kotlify.element.VRecycler
 import com.brotandos.kotlify.element.WidgetElement
@@ -18,9 +22,16 @@ abstract class VContainer<V : ViewGroup>(
     size: LayoutSize
 ) : WidgetElement<V>(size), WidgetContainer {
 
-    val children = mutableListOf<UiEntity<*>>()
+    protected val children = mutableListOf<UiEntity<*>>()
+    fun add(uiEntity: UiEntity<*>) = children.add(uiEntity)
+
+    // TODO find way to inject it
+    private var getDisplayMetrics: (() -> DisplayMetrics)? = null
+
+    val Int.sp get() = this / 2 * (getDisplayMetrics?.invoke()?.scaledDensity ?: throw RuntimeException())
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): V {
+        getDisplayMetrics = { context.resources.displayMetrics }
         val view = super.build(context, kotlifyContext)
         children.forEach {
             val child = it.build(context, kotlifyContext)
@@ -28,6 +39,7 @@ abstract class VContainer<V : ViewGroup>(
                 view.addView(child)
             }
         }
+        onBuildFinished(view)
         return view
     }
 
@@ -40,7 +52,7 @@ abstract class VContainer<V : ViewGroup>(
                 KotlifyInternals.initiateView(context, V::class.java)
         }
         vElement.init()
-        children += vElement
+        add(vElement)
         return vElement
     }
 
@@ -49,7 +61,7 @@ abstract class VContainer<V : ViewGroup>(
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
         }
-        children += vElement
+        add(vElement)
         return vElement
     }
 
@@ -105,10 +117,27 @@ abstract class VContainer<V : ViewGroup>(
         return vContainer
     }
 
+    @Throws(RuntimeException::class)
+    fun vDialog(init: VDialog.() -> Unit): Disposable {
+        val vDialog = VDialog()
+        vDialog.init()
+        add(vDialog)
+        return vDialog
+    }
+
+    fun vBottomSheetDialog(init: VBottomSheetDialog.() -> Unit): Disposable {
+        val vBottomSheetDialog = VBottomSheetDialog()
+        vBottomSheetDialog.init()
+        add(vBottomSheetDialog)
+        return vBottomSheetDialog
+    }
+
     operator fun WidgetElement<*>.unaryPlus(): Disposable {
         children += this
         return this
     }
+
+    open fun onBuildFinished(view: V) = Unit
 
     override fun dispose() {
         super.dispose()

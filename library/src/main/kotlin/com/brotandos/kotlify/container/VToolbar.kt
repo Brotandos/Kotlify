@@ -3,22 +3,25 @@ package com.brotandos.kotlify.container
 import android.content.Context
 import android.content.res.Resources
 import android.util.TypedValue
-import android.view.*
+import android.view.Gravity
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
+import androidx.annotation.ColorRes
+import androidx.annotation.IdRes
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.setPadding
+import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.LayoutSize
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
 class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
-
-    private val title = BehaviorRelay.createDefault("")
-
-    private val titleResId = BehaviorRelay.createDefault(0)
 
     private val menuItems = mutableListOf<VMenu>()
 
@@ -27,22 +30,66 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
      * */
     private var resources: (() -> Resources)? = null
 
+    private var navigationPair: Pair<Int, () -> Unit>? = null
+
+    var title: BehaviorRelay<String>? = null
+
+    var titleResId: BehaviorRelay<Int>? = null
+
+    var elevation: CustomLength? = null
+
+    var startContentInset: CustomLength? = null
+
+    var endContentInset: CustomLength? = null
+
+    var contentInsets: Pair<CustomLength?, CustomLength?>
+        get() = startContentInset to endContentInset
+        set(value) {
+            startContentInset = value.first
+            endContentInset = value.second
+        }
+
+    @ColorRes
+    var backgroundRes: Int? = null
+
+    var titleTextColor: Int? = null
+
     override fun createView(context: Context): Toolbar = Toolbar(context)
 
     override fun initSubscriptions(view: Toolbar?) {
         super.initSubscriptions(view)
-        title
-            .subscribe { view?.title = it }
-            .untilLifecycleDestroy()
+        titleResId
+                ?.subscribe { view?.setTitle(it) }
+                ?.untilLifecycleDestroy()
+                ?: title
+                        ?.subscribe { view?.title = it }
+                        ?.untilLifecycleDestroy()
     }
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): Toolbar {
         val view = super.build(context, kotlifyContext)
+        val density = context.resources.displayMetrics.density.toInt()
+        backgroundRes?.let(view::setBackgroundResource)
         resources = { context.resources }
+        navigationPair?.let { (iconResId, onClick) ->
+            view.setNavigationIcon(iconResId)
+            view.setNavigationOnClickListener { onClick() }
+        }
+        elevation?.let {
+            view.elevation = it.getValue(density).toFloat()
+        }
+        view.contentInsetStartWithNavigation = 0
+        titleTextColor?.let(view::setTitleTextColor)
         val menu = view.menu
         menu.clear()
         menuItems.forEach { it.inflate(menu, context) }
         return view
+    }
+
+    fun setTitle(titleRes: Int) {
+        titleResId?.accept(titleRes) ?: let {
+            titleResId = BehaviorRelay.createDefault(titleRes)
+        }
     }
 
     fun vAction(
@@ -57,6 +104,10 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
         vMenu.isLoading = isLoading
         vMenu.init()
         menuItems += vMenu
+    }
+
+    fun vNavigation(iconResId: Int, onNavigationClick: () -> Unit) {
+        navigationPair = iconResId to onNavigationClick
     }
 
     class VMenu(private val title: String, private val addToComposite: Disposable.() -> Unit) {

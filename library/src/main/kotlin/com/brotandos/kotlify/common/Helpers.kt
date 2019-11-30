@@ -1,9 +1,15 @@
 package com.brotandos.kotlify.common
 
+import android.app.Activity
+import android.content.Intent
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProviders
+
+const val NO_FLAGS = -1
 
 open class KotlifyException(message: String = "") : RuntimeException(message)
 
@@ -22,3 +28,26 @@ inline fun <reified VM : ViewModel> FragmentActivity.viewModels(): Lazy<VM> =
 
         override fun isInitialized(): Boolean = cached != null
     }
+
+inline fun <reified T : Activity> Activity.startActivity(flags: Int = NO_FLAGS) {
+    val intent = Intent(this, T::class.java)
+    if (flags != NO_FLAGS) intent.addFlags(flags)
+    startActivity(intent)
+}
+
+inline fun <reified T : Activity> T.restart() =
+        startActivity<T>(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+
+fun FragmentManager.commit(block: FragmentTransaction.() -> FragmentTransaction): Int =
+        beginTransaction().block().commit()
+
+fun FragmentManager.commitNow(block: FragmentTransaction.() -> FragmentTransaction) =
+        beginTransaction().block().commitNow()
+
+fun FragmentManager.commitAllowingStateLoss(
+        block: FragmentTransaction.() -> FragmentTransaction
+): Int = beginTransaction().block().commitAllowingStateLoss()
+
+fun FragmentManager.commitNowAllowingStateLoss(
+        block: FragmentTransaction.() -> FragmentTransaction
+) = beginTransaction().block().commitNowAllowingStateLoss()

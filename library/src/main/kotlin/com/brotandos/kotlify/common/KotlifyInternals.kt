@@ -3,6 +3,7 @@ package com.brotandos.kotlify.common
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
+import com.brotandos.kotlify.container.VContainer
 import com.jakewharton.rxrelay2.BehaviorRelay
 
 object KotlifyInternals {
@@ -29,7 +30,14 @@ object KotlifyInternals {
                 throw RuntimeException("Can't initiate View of class ${viewClass.name}: can't find proper constructor")
             }
         }
+    }
 
+    @JvmStatic
+    @Throws(RuntimeException::class)
+    fun <T : VContainer<*>> initiateWidgetContainer(size: LayoutSize, clazz: Class<T>): T = try {
+        clazz.getConstructor(LayoutSize::class.java).newInstance(size)
+    } catch (e: NoSuchMethodException) {
+        throw RuntimeException("Can't initiate WidgetContainer of class ${clazz.name}: can't find proper constructor")
     }
 }
 

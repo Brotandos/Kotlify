@@ -12,6 +12,7 @@ import com.brotandos.kotlify.R
 import com.brotandos.kotlify.common.Water
 import com.brotandos.kotlify.common.toggleValue
 import com.brotandos.kotlify.container.VContainer
+import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.container.root.VRootOwner
 import com.brotandos.kotlify.container.root.vRoot
 import com.jakewharton.rxrelay2.BehaviorRelay
@@ -27,10 +28,10 @@ class TestingViewModel : ViewModel() {
     private val listRelay = BehaviorRelay.createDefault(listOf(1, 2, 3, 4, 5))
     private val isBottomSheetButtonVisible = BehaviorRelay.createDefault(false)
 
-    private lateinit var vRoot: VContainer<*>
+    private lateinit var vRoot: VRoot<*>
 
     fun markup(activity: AppCompatActivity) {
-        vRoot = activity.vRoot<LinearLayout>(activity, activity as VRootOwner) {
+        vRoot = activity.vRoot<VContainer<LinearLayout>>(activity, activity as VRootOwner) {
             isDark(isDark, 0xFFEEEEEE.toInt(), 0xFF222222.toInt())
             initView {
                 orientation = LinearLayout.VERTICAL
