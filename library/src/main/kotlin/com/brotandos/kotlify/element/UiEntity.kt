@@ -21,7 +21,10 @@ abstract class UiEntity<T> : Disposable {
         get() = KotlifyInternals.noGetter()
         set(value) { isAppearedRelay = value }
 
-    abstract fun build(context: Context, kotlifyContext: KotlifyContext): T
+    abstract fun build(
+            context: Context,
+            kotlifyContext: KotlifyContext
+    ): T
 
     override fun isDisposed(): Boolean = disposables.isDisposed
 

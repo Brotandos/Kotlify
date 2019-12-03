@@ -74,7 +74,7 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(),
         return vContainer
     }
 
-    override fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): Disposable {
+    override fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): VToolbar {
         val vToolbar = VToolbar(size)
         vToolbar.init()
         vContent = vToolbar
@@ -85,7 +85,7 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(),
         size: LayoutSize,
         items: BehaviorRelay<List<E>>,
         init: VRecycler<E>.() -> Unit
-    ): Disposable {
+    ): VRecycler<E> {
         val vRecycler = VRecycler(itemsRelay = items, size = size)
         vRecycler.init()
         vContent = vRecycler
@@ -95,7 +95,7 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(),
     override fun vVertical(
         size: LayoutSize,
         init: VContainer<LinearLayout>.() -> Unit
-    ): Disposable {
+    ): VContainer<LinearLayout> {
         val vContainer = object : VContainer<LinearLayout>(size) {
             override fun createView(context: Context): LinearLayout =
                 LinearLayout(context)
@@ -106,7 +106,7 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(),
         return vContainer
     }
 
-    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): Disposable {
+    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VContainer<LinearLayout> {
         val vContainer = object : VContainer<LinearLayout>(Air) {
             override fun createView(context: Context): LinearLayout =
                 LinearLayout(context)

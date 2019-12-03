@@ -14,7 +14,11 @@ class VDialog : ModalElement<AlertDialog>() {
         message?.let(builder::setMessage)
         cancellable?.let(builder::setCancelable)
         vContent?.let {
-            val view = it.build(context, kotlifyContext)
+            val view = it.buildWidget(
+                    context,
+                    kotlifyContext,
+                    listOf() // TODO implement path for modal
+            )
             builder.setView(view)
         }
         val dialog = builder.create()

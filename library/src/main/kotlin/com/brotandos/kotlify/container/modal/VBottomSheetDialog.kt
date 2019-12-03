@@ -11,7 +11,11 @@ class VBottomSheetDialog : ModalElement<BottomSheetDialog>() {
         titleResId?.let(dialog::setTitle) ?: title?.let(dialog::setTitle)
         cancellable?.let(dialog::setCancelable)
         initSubscriptions(dialog)
-        vContent?.build(context, kotlifyContext)?.let(dialog::setContentView)
+        vContent?.buildWidget(
+                context,
+                kotlifyContext,
+                listOf() // TODO implement path for dialogs
+        )?.let(dialog::setContentView)
         return dialog
     }
 }

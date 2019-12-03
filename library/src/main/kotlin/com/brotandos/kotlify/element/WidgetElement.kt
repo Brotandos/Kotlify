@@ -8,15 +8,32 @@ import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.KotlifyInternals.NO_GETTER
 import com.brotandos.kotlify.common.LayoutSize
-import com.brotandos.kotlify.common.NoGetterException
+import com.brotandos.kotlify.exception.ContextAnonymousException
 import com.jakewharton.rxrelay2.BehaviorRelay
-import java.lang.RuntimeException
 
 const val ID_NOT_SET = -1
+
+private const val ID_KEY_SEPERATOR = "-"
 
 abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     var id = ID_NOT_SET
+
+    protected var tag: Any? = null
+
+    /**
+     * Must be initialized inside [WidgetElement.buildWidget]
+     * TODO implement @InitializesInside(Method) annotation
+     * */
+    protected lateinit var vRootOwnerName: String
+
+    /**
+     * Must be initialized inside [WidgetElement.buildWidget]
+     * TODO implement @InitializesInside(Method) annotation
+     * */
+    protected lateinit var packageName: String
+
+    protected var pathInsideTree: List<Int>? = null
 
     private var isDarkRelay: BehaviorRelay<Boolean>? = null
 
@@ -96,5 +113,31 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
             }
         }
         return view
+    }
+
+    /**
+     * Must be initialized before [WidgetElement.build]
+     * */
+    @CallSuper
+    @Throws(ContextAnonymousException::class)
+    fun buildWidget(
+            context: Context,
+            kotlifyContext: KotlifyContext,
+            pathInTree: List<Int>
+    ): V {
+        vRootOwnerName = context::class.simpleName ?: throw ContextAnonymousException()
+        packageName = context.packageName
+        this.pathInsideTree = pathInTree
+        return build(context, kotlifyContext)
+    }
+
+    fun getIdKey(): String = buildString {
+        append(packageName)
+        append(ID_KEY_SEPERATOR)
+        append(vRootOwnerName)
+        pathInsideTree?.forEach {
+            append(ID_KEY_SEPERATOR)
+            append(it)
+        }
     }
 }

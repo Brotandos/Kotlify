@@ -28,18 +28,18 @@ interface WidgetContainer {
             MatchParent
         )
 
-    fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): Disposable
+    fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): VToolbar
 
     fun <E> vRecycler(
         size: LayoutSize,
         items: BehaviorRelay<List<E>>,
         init: VRecycler<E>.() -> Unit
-    ): Disposable
+    ): VRecycler<E>
 
     fun vVertical(
         size: LayoutSize,
         init: VContainer<LinearLayout>.() -> Unit
-    ): Disposable
+    ): VContainer<LinearLayout>
 
-    fun vVertical(init: VContainer<LinearLayout>.() -> Unit): Disposable
+    fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VContainer<LinearLayout>
 }

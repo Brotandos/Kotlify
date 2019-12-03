@@ -1,14 +1,21 @@
 package com.brotandos.kotlify.common
 
+import android.app.Application
 import android.content.Context
+import android.os.AsyncTask
 import android.util.AttributeSet
 import android.view.View
+import androidx.core.content.edit
 import com.brotandos.kotlify.container.VContainer
 import com.jakewharton.rxrelay2.BehaviorRelay
 
 object KotlifyInternals {
 
     const val NO_GETTER: String = "Property does not have a getter"
+
+    const val IDS_CACHE_FILE_NAME = "KotlifyIdsCache"
+
+    val rootPath = listOf(0)
 
     fun <T> noGetter(): T = throw NoGetterException
 
@@ -38,6 +45,19 @@ object KotlifyInternals {
         clazz.getConstructor(LayoutSize::class.java).newInstance(size)
     } catch (e: NoSuchMethodException) {
         throw RuntimeException("Can't initiate WidgetContainer of class ${clazz.name}: can't find proper constructor")
+    }
+
+    /**
+     * Should be registered in [Application.onCreate]
+     * */
+    fun registerApp(app: Application) {
+        AsyncTask.execute {
+            val sharedPreferences = app.getSharedPreferences(
+                    IDS_CACHE_FILE_NAME,
+                    Context.MODE_PRIVATE
+            )
+            sharedPreferences.edit { clear() }
+        }
     }
 }
 

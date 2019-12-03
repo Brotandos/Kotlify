@@ -11,7 +11,6 @@ import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.container.modal.VBottomSheetDialog
 import com.brotandos.kotlify.container.modal.VDialog
-import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.element.UiEntity
 import com.brotandos.kotlify.element.VRecycler
 import com.brotandos.kotlify.element.WidgetElement
@@ -28,16 +27,23 @@ abstract class VContainer<V : ViewGroup>(
     // TODO find way to inject it
     private var getDisplayMetrics: (() -> DisplayMetrics)? = null
 
-    val Int.sp get() = this / 2 * (getDisplayMetrics?.invoke()?.scaledDensity ?: throw RuntimeException())
-
     override fun build(context: Context, kotlifyContext: KotlifyContext): V {
         getDisplayMetrics = { context.resources.displayMetrics }
         val view = super.build(context, kotlifyContext)
-        children.forEach {
-            val child = it.build(context, kotlifyContext)
-            if (child is View) {
-                view.addView(child)
+        children.forEachIndexed { index, uiEntity ->
+            if (uiEntity !is WidgetElement) {
+                uiEntity.build(context, kotlifyContext)
+                return@forEachIndexed
             }
+            // TODO use custom exception
+            val path = pathInsideTree ?: throw RuntimeException("WidgetContainer#buildWidget method must be called before to initialize pathInsideTree")
+            val child = uiEntity.buildWidget(
+                    context,
+                    kotlifyContext,
+                    path + index
+            ) as? View ?: throw RuntimeException("Generic type of widget must extend View")
+            // TODO use custom exception
+            view.addView(child)
         }
         onBuildFinished(view)
         return view
@@ -77,7 +83,7 @@ abstract class VContainer<V : ViewGroup>(
         return vContainer
     }
 
-    override fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): Disposable {
+    override fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): VToolbar {
         val vToolbar = VToolbar(size)
         vToolbar.init()
         children += vToolbar
@@ -88,14 +94,17 @@ abstract class VContainer<V : ViewGroup>(
         size: LayoutSize,
         items: BehaviorRelay<List<E>>,
         init: VRecycler<E>.() -> Unit
-    ): Disposable {
+    ): VRecycler<E> {
         val vRecycler = VRecycler(size = size, itemsRelay = items)
         vRecycler.init()
         children += vRecycler
         return vRecycler
     }
 
-    override fun vVertical(size: LayoutSize, init: VContainer<LinearLayout>.() -> Unit): Disposable {
+    override fun vVertical(
+            size: LayoutSize,
+            init: VContainer<LinearLayout>.() -> Unit
+    ): VContainer<LinearLayout> {
         val vContainer = object : VContainer<LinearLayout>(size) {
             override fun createView(context: Context): LinearLayout =
                 LinearLayout(context)
@@ -106,7 +115,7 @@ abstract class VContainer<V : ViewGroup>(
         return vContainer
     }
 
-    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): Disposable {
+    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VContainer<LinearLayout> {
         val vContainer = object : VContainer<LinearLayout>(Earth) {
             override fun createView(context: Context): LinearLayout =
                 LinearLayout(context)

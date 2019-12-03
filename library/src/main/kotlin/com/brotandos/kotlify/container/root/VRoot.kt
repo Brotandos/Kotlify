@@ -8,7 +8,9 @@ import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.KotlifyLifecycleObserver
 import com.brotandos.kotlify.container.VContainer
 
-class VRoot<T : VContainer<*>>(private val vContainer: T) {
+class VRoot<T : VContainer<*>>(
+        private val vContainer: T
+) {
 
     private var lifecycleObserver: KotlifyLifecycleObserver? = null
 
@@ -34,7 +36,7 @@ inline fun <reified T : VContainer<*>> Activity.vRoot(
     val vContainer = KotlifyInternals.initiateWidgetContainer(Air, T::class.java)
     val vRoot = VRoot(vContainer)
     vContainer.init()
-    val view = vContainer.build(this, KotlifyContext())
+    val view = vContainer.buildWidget(this, KotlifyContext(), KotlifyInternals.rootPath)
     setContentView(view)
     return vRoot
 }
@@ -47,7 +49,7 @@ inline fun <reified T : VContainer<*>> Activity.vRoot(
     val vContainer = KotlifyInternals.initiateWidgetContainer(Air, T::class.java)
     val vRoot = VRoot(vContainer)
     vContainer.init()
-    val view = vContainer.build(this, KotlifyContext())
+    val view = vContainer.buildWidget(this, KotlifyContext(), KotlifyInternals.rootPath)
     setContentView(view)
     vRoot.disposeOnViewDestroyed(lifecycleOwner)
     vRootOwner.vRoot?.clearObservers(lifecycleOwner)

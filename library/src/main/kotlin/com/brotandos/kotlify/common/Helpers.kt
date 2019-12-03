@@ -2,6 +2,7 @@ package com.brotandos.kotlify.common
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
@@ -32,6 +33,12 @@ inline fun <reified VM : ViewModel> FragmentActivity.viewModels(): Lazy<VM> =
 inline fun <reified T : Activity> Activity.startActivity(flags: Int = NO_FLAGS) {
     val intent = Intent(this, T::class.java)
     if (flags != NO_FLAGS) intent.addFlags(flags)
+    startActivity(intent)
+}
+
+fun Activity.browse(url: String) {
+    val intent = Intent(Intent.ACTION_VIEW)
+    intent.data = Uri.parse(url)
     startActivity(intent)
 }
 

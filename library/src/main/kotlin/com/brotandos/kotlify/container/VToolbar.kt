@@ -2,6 +2,7 @@ package com.brotandos.kotlify.container
 
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.Menu
@@ -11,9 +12,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
+import android.widget.TextView
 import androidx.annotation.ColorRes
-import androidx.annotation.IdRes
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.children
 import androidx.core.view.setPadding
 import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.KotlifyContext
@@ -49,6 +51,8 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
             endContentInset = value.second
         }
 
+    var typeface: Typeface? = null
+
     @ColorRes
     var backgroundRes: Int? = null
 
@@ -67,23 +71,29 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
     }
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): Toolbar {
-        val view = super.build(context, kotlifyContext)
+        val toolbar = super.build(context, kotlifyContext)
         val density = context.resources.displayMetrics.density.toInt()
-        backgroundRes?.let(view::setBackgroundResource)
+        backgroundRes?.let(toolbar::setBackgroundResource)
         resources = { context.resources }
         navigationPair?.let { (iconResId, onClick) ->
-            view.setNavigationIcon(iconResId)
-            view.setNavigationOnClickListener { onClick() }
+            toolbar.setNavigationIcon(iconResId)
+            toolbar.setNavigationOnClickListener { onClick() }
         }
         elevation?.let {
-            view.elevation = it.getValue(density).toFloat()
+            toolbar.elevation = it.getValue(density).toFloat()
         }
-        view.contentInsetStartWithNavigation = 0
-        titleTextColor?.let(view::setTitleTextColor)
-        val menu = view.menu
+        toolbar.contentInsetStartWithNavigation = 0
+        titleTextColor?.let(toolbar::setTitleTextColor)
+        val menu = toolbar.menu
         menu.clear()
         menuItems.forEach { it.inflate(menu, context) }
-        return view
+        typeface?.let { typeface ->
+            toolbar.children
+                    .filterIsInstance<TextView>()
+                    .find { it.text == toolbar.title }
+                    ?.setTypeface(typeface)
+        }
+        return toolbar
     }
 
     fun setTitle(titleRes: Int) {

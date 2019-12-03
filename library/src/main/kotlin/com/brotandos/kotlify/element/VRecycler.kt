@@ -55,7 +55,13 @@ class VRecycler<E>(
         override fun onCreateViewHolder(parent: ViewGroup, position: Int): KotlifyViewHolder {
             val vElement = vItem?.invoke(items[position])
                 ?: throw RuntimeException("vItem is not set")
-            val view = vElement.build(parent.context, kotlifyContext)
+            // TODO use custom exception
+            val path = pathInsideTree ?: throw RuntimeException("WidgetContainer#buildWidget method must be called before to initialize pathInsideTree")
+            val view = vElement.buildWidget(
+                    parent.context,
+                    kotlifyContext,
+                    path + position
+            )
             return KotlifyViewHolder(view, vElement)
         }
 
