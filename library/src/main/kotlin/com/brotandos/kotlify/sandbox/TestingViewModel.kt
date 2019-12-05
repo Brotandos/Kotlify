@@ -106,7 +106,7 @@ class TestingViewModel : ViewModel() {
                 vContainer<LinearLayout> {
                     initView { orientation = LinearLayout.VERTICAL }
                     vCustom<Button> {
-                        onClick { isBottomDialog.accept(false) }
+                        clickRelay.subscribe { isBottomDialog.accept(false) }
                     }
                     vCustom<Button>()
                 }

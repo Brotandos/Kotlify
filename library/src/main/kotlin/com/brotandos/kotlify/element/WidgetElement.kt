@@ -1,6 +1,8 @@
 package com.brotandos.kotlify.element
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
@@ -10,10 +12,13 @@ import com.brotandos.kotlify.common.KotlifyInternals.NO_GETTER
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.exception.ContextAnonymousException
 import com.jakewharton.rxrelay2.BehaviorRelay
+import com.jakewharton.rxrelay2.PublishRelay
+import io.reactivex.disposables.Disposable
+import java.util.concurrent.TimeUnit
 
 const val ID_NOT_SET = -1
 
-private const val ID_KEY_SEPERATOR = "-"
+private const val ID_KEY_SEPARATOR = "-"
 
 abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
@@ -39,6 +44,8 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     private var backgroundColors: Pair<Int, Int>? = null
 
+    private var activityToNavigateOnClick: Class<Activity>? = null
+
     // TODO implement
     // open var isInvisible: BehaviorRelay<Boolean>? = null
 
@@ -51,8 +58,24 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         get() = KotlifyInternals.noGetter()
         set(value) { isEnabledRelay = value }
 
-    private var onClick: (() -> Unit)? = null
-    fun onClick(f: () -> Unit) { onClick = f }
+    var clickRelay: PublishRelay<Unit> = PublishRelay.create()
+
+    fun throttleClick(
+            timeout: Int = ThrottleClickProperties.TIMEOUT.toInt(),
+            onClick: () -> Unit
+    ): Disposable {
+        val clickDisposable = clickRelay
+                .throttleFirst(timeout.toLong(), ThrottleClickProperties.timeUnit)
+                .subscribe { onClick() }
+        disposables.add(clickDisposable)
+        return clickDisposable
+    }
+
+    fun onClick(f: () -> Unit): Disposable {
+        val clickDisposable = clickRelay.subscribe { f() }
+        disposables.add(clickDisposable)
+        return clickDisposable
+    }
 
     private var viewInit: (V.() -> Unit)? = null
     fun initView(init: V.() -> Unit) { viewInit = init }
@@ -101,15 +124,18 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         if (id != ID_NOT_SET) {
             view.id = id
         }
-        val density = context.resources.displayMetrics.density.toInt()
-        val (width, height) = size.getValuePair(density)
+        val (width, height) = size.getValuePair(context.density)
         view.layoutParams = ViewGroup.LayoutParams(width, height)
         viewInit?.invoke(view)
         layoutInit?.invoke(view)
         initSubscriptions(view)
-        onClick?.let { onClick ->
-            view.setOnClickListener {
-                onClick.invoke()
+        view.setOnClickListener {
+            clickRelay.accept(Unit)
+        }
+        activityToNavigateOnClick?.let {
+            throttleClick {
+                val intent = Intent(context, it)
+                context.startActivity(intent)
             }
         }
         return view
@@ -133,11 +159,20 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     fun getIdKey(): String = buildString {
         append(packageName)
-        append(ID_KEY_SEPERATOR)
+        append(ID_KEY_SEPARATOR)
         append(vRootOwnerName)
         pathInsideTree?.forEach {
-            append(ID_KEY_SEPERATOR)
+            append(ID_KEY_SEPARATOR)
             append(it)
         }
+    }
+
+    fun to(clazz: Class<Activity>) {
+        activityToNavigateOnClick = clazz
+    }
+
+    object ThrottleClickProperties {
+        const val TIMEOUT = 400L
+        val timeUnit = TimeUnit.MILLISECONDS
     }
 }

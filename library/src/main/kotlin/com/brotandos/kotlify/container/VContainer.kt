@@ -5,6 +5,8 @@ import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.annotation.StringRes
 import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
@@ -12,6 +14,7 @@ import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.container.modal.VBottomSheetDialog
 import com.brotandos.kotlify.container.modal.VDialog
 import com.brotandos.kotlify.element.UiEntity
+import com.brotandos.kotlify.element.VLabel
 import com.brotandos.kotlify.element.VRecycler
 import com.brotandos.kotlify.element.WidgetElement
 import com.jakewharton.rxrelay2.BehaviorRelay
@@ -83,11 +86,61 @@ abstract class VContainer<V : ViewGroup>(
         return vContainer
     }
 
-    override fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): VToolbar {
+    override fun vToolbar(
+            size: LayoutSize,
+            init: VToolbar.() -> Unit
+    ): VToolbar {
         val vToolbar = VToolbar(size)
         vToolbar.init()
         children += vToolbar
         return vToolbar
+    }
+
+    override fun vLabel(size: LayoutSize, init: VLabel.() -> Unit): VLabel {
+        val vLabel = VLabel(size)
+        vLabel.init()
+        children += vLabel
+        return vLabel
+    }
+
+    override fun vLabel(
+            size: LayoutSize,
+            vararg styles: TextView.() -> Unit,
+            init: VLabel.() -> Unit
+    ): VLabel {
+        val vLabel = VLabel(size)
+        vLabel.styles = arrayOf(*styles)
+        vLabel.init()
+        children += vLabel
+        return vLabel
+    }
+
+    override fun vLabel(
+            size: LayoutSize,
+            @StringRes textResId: Int,
+            vararg styles: TextView.() -> Unit,
+            init: VLabel.() -> Unit
+    ): VLabel {
+        val vLabel = VLabel(size)
+        vLabel.textResId = textResId
+        vLabel.styles = arrayOf(*styles)
+        vLabel.init()
+        children += vLabel
+        return vLabel
+    }
+
+    override fun vLabel(
+            size: LayoutSize,
+            text: String,
+            vararg styles: TextView.() -> Unit,
+            init: VLabel.() -> Unit
+    ): VLabel {
+        val vLabel = VLabel(size)
+        vLabel.text = text
+        vLabel.styles = arrayOf(*styles)
+        vLabel.init()
+        children += vLabel
+        return vLabel
     }
 
     override fun <E> vRecycler(

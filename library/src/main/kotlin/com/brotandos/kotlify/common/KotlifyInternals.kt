@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.edit
 import com.brotandos.kotlify.container.VContainer
+import com.brotandos.kotlify.element.WidgetElement
 import com.jakewharton.rxrelay2.BehaviorRelay
 
 object KotlifyInternals {
@@ -42,6 +43,14 @@ object KotlifyInternals {
     @JvmStatic
     @Throws(RuntimeException::class)
     fun <T : VContainer<*>> initiateWidgetContainer(size: LayoutSize, clazz: Class<T>): T = try {
+        clazz.getConstructor(LayoutSize::class.java).newInstance(size)
+    } catch (e: NoSuchMethodException) {
+        throw RuntimeException("Can't initiate WidgetContainer of class ${clazz.name}: can't find proper constructor")
+    }
+
+    @JvmStatic
+    @Throws(RuntimeException::class)
+    fun <T : WidgetElement<*>> initiateWidget(clazz: Class<T>, size: LayoutSize = Earth): T = try {
         clazz.getConstructor(LayoutSize::class.java).newInstance(size)
     } catch (e: NoSuchMethodException) {
         throw RuntimeException("Can't initiate WidgetContainer of class ${clazz.name}: can't find proper constructor")

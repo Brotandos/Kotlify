@@ -72,7 +72,6 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): Toolbar {
         val toolbar = super.build(context, kotlifyContext)
-        val density = context.resources.displayMetrics.density.toInt()
         backgroundRes?.let(toolbar::setBackgroundResource)
         resources = { context.resources }
         navigationPair?.let { (iconResId, onClick) ->
@@ -80,7 +79,7 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
             toolbar.setNavigationOnClickListener { onClick() }
         }
         elevation?.let {
-            toolbar.elevation = it.getValue(density).toFloat()
+            toolbar.elevation = it.getValue(context.density).toFloat()
         }
         toolbar.contentInsetStartWithNavigation = 0
         titleTextColor?.let(toolbar::setTitleTextColor)

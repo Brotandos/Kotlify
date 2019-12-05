@@ -26,7 +26,10 @@ typealias ConstraintMap = MutableMap<
 
 class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
 
-    private val constraintMap: ConstraintMap = mutableMapOf()
+    private val constraints = mutableMapOf<
+            WidgetElement<*>,
+            MutableMap<ConstraintSide, () -> ConstraintTarget>
+    >()
 
     private val constraintLayoutInits = mutableListOf<(ConstraintSet) -> Unit>()
 
@@ -51,24 +54,21 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
         identifyWidgets(sharedPreferences, constraintLayout.children.toList())
         val constraintSet = ConstraintSet()
         constraintSet.clone(constraintLayout)
-        constraintMap.forEach { (sourceWidget, constraints) ->
-            constraints.forEach { (side, target) ->
-                target.margin?.let { it ->
-                    val margin = it.getValue(
-                            constraintLayout.context.resources.displayMetrics.density.toInt()
-                    )
-                    constraintSet.connect(
-                            sourceWidget.id,
-                            side.value,
-                            target.widgetElement?.id ?: ConstraintSet.PARENT_ID,
-                            target.side.value,
-                            margin
-                    )
-                } ?: constraintSet.connect(
+        for ((sourceWidget, targets) in constraints) {
+            targets.forEach { (side, targetGetter) ->
+                val target = targetGetter.invoke()
+                val margin = target.margin ?: return@forEach constraintSet.connect(
                         sourceWidget.id,
                         side.value,
                         target.widgetElement?.id ?: ConstraintSet.PARENT_ID,
                         target.side.value
+                )
+                constraintSet.connect(
+                        sourceWidget.id,
+                        side.value,
+                        target.widgetElement?.id ?: ConstraintSet.PARENT_ID,
+                        target.side.value,
+                        margin.getValue(constraintLayout.context.density)
                 )
             }
         }
@@ -78,7 +78,7 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
 
     private fun identifyWidgets(
             sharedPreferences: SharedPreferences,
-            viewChildren: List<View>
+            childViews: List<View>
     ) {
         children
                 .filterIsInstance<WidgetElement<*>>()
@@ -89,7 +89,7 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
                             .getInt(element.getIdKey(), ID_NOT_SET)
                             .takeIf { it != ID_NOT_SET }
                             ?: generateId(key, sharedPreferences)
-                    viewChildren[index].id = element.id
+                    childViews[index].id = element.id
                 }
     }
 
@@ -101,28 +101,28 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
         return id
     }
 
-    fun WidgetElement<*>.startTo(target: HorizontalTarget) =
-            registerConstraint(this, ConstraintSide.Start, target)
+    fun WidgetElement<*>.startTo(targetGetter: () -> HorizontalTarget) =
+            addConstraint(this, ConstraintSide.Start, targetGetter)
 
-    fun WidgetElement<*>.topTo(target: VerticalTarget) =
-            registerConstraint(this, ConstraintSide.Top, target)
+    fun WidgetElement<*>.topTo(targetGetter: () -> VerticalTarget) =
+            addConstraint(this, ConstraintSide.Top, targetGetter)
 
-    fun WidgetElement<*>.endTo(target: HorizontalTarget) =
-            registerConstraint(this, ConstraintSide.End, target)
+    fun WidgetElement<*>.endTo(targetGetter: () -> HorizontalTarget) =
+            addConstraint(this, ConstraintSide.End, targetGetter)
 
-    fun WidgetElement<*>.bottomTo(target: VerticalTarget) =
-            registerConstraint(this, ConstraintSide.Bottom, target)
+    fun WidgetElement<*>.bottomTo(targetGetter: () -> VerticalTarget) =
+            addConstraint(this, ConstraintSide.Bottom, targetGetter)
 
-    private fun registerConstraint(
+    private fun addConstraint(
             sourceWidget: WidgetElement<*>,
             sourceSide: ConstraintSide,
-            target: ConstraintTarget
+            targetGetter: () -> ConstraintTarget
     ) {
-        constraintMap[sourceWidget]?.let {
-            it[sourceSide] = target
+        constraints[sourceWidget]?.let {
+            it[sourceSide] = targetGetter
             return
         }
-        constraintMap[sourceWidget] = mutableMapOf(sourceSide to target)
+        constraints[sourceWidget] = mutableMapOf(sourceSide to targetGetter)
     }
 
     var WidgetElement<*>.horizontalBias: Float
@@ -139,29 +139,36 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
 
     operator fun HorizontalTarget.plus(customLength: CustomLength) = HorizontalTarget(
             pole,
-            widgetElement,
-            customLength
+            targetWidget = widgetElement,
+            margin = customLength
     )
 
     operator fun HorizontalTarget.minus(customLength: CustomLength) = HorizontalTarget(
             pole,
-            widgetElement,
-            CustomLength(-customLength.coefficient)
+            targetWidget = widgetElement,
+            margin = CustomLength(-customLength.coefficient)
     )
 
     operator fun VerticalTarget.plus(customLength: CustomLength) = VerticalTarget(
             pole,
-            widgetElement,
-            customLength
+            targetWidget = widgetElement,
+            margin = customLength
     )
 
     operator fun VerticalTarget.minus(customLength: CustomLength) = VerticalTarget(
             pole,
-            widgetElement,
-            CustomLength(-customLength.coefficient)
+            targetWidget = widgetElement,
+            margin = CustomLength(-customLength.coefficient)
     )
 }
 
+inline fun <reified T : WidgetElement<*>> lateinit(): T =
+        KotlifyInternals.initiateWidget(T::class.java)
+
+/**
+ * If [ConstraintSidePole.POSITIVE], then side is [ConstraintSide.Start] or [ConstraintSide.Top]
+ * If [ConstraintSidePole.NEGATIVE], then side is [ConstraintSide.End] or [ConstraintSide.Bottom]
+ * */
 enum class ConstraintSidePole {
     POSITIVE,
     NEGATIVE
@@ -182,20 +189,20 @@ open class ConstraintTarget(
 
 class HorizontalTarget(
         val pole: ConstraintSidePole,
-        widgetElement: WidgetElement<*>? = CONSTRAINT_TARGET_PARENT,
+        targetWidget: WidgetElement<*>? = CONSTRAINT_TARGET_PARENT,
         margin: CustomLength? = null
 ) : ConstraintTarget(
         if (pole == START_SIDE_POLE) ConstraintSide.Start else ConstraintSide.End,
-        widgetElement,
+        targetWidget,
         margin
 )
 
 class VerticalTarget(
         val pole: ConstraintSidePole,
-        widgetElement: WidgetElement<*>? = CONSTRAINT_TARGET_PARENT,
+        targetWidget: WidgetElement<*>? = CONSTRAINT_TARGET_PARENT,
         margin: CustomLength? = null
 ) : ConstraintTarget(
         if (pole == TOP_SIDE_POLE) ConstraintSide.Top else ConstraintSide.Bottom,
-        widgetElement,
+        targetWidget,
         margin
 )

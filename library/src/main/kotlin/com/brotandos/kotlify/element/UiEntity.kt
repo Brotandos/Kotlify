@@ -13,7 +13,7 @@ import java.lang.RuntimeException
 
 abstract class UiEntity<T> : Disposable {
 
-    private val disposables = CompositeDisposable()
+    protected val disposables = CompositeDisposable()
 
     protected var isAppearedRelay: BehaviorRelay<Boolean>? = null
     var isAppeared: BehaviorRelay<Boolean>
@@ -25,6 +25,8 @@ abstract class UiEntity<T> : Disposable {
             context: Context,
             kotlifyContext: KotlifyContext
     ): T
+
+    protected val Context.density get() = resources.displayMetrics.density.toInt()
 
     override fun isDisposed(): Boolean = disposables.isDisposed
 
