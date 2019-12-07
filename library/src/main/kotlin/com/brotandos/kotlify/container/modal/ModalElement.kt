@@ -9,7 +9,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.annotation.StringRes
+import androidx.cardview.widget.CardView
 import com.brotandos.kotlify.common.Air
+import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.container.VContainer
@@ -20,10 +22,10 @@ import com.brotandos.kotlify.element.VLabel
 import com.brotandos.kotlify.element.VRecycler
 import com.brotandos.kotlify.element.WidgetElement
 import com.jakewharton.rxrelay2.BehaviorRelay
-import io.reactivex.disposables.Disposable
+import io.reactivex.android.schedulers.AndroidSchedulers
 
-abstract class ModalElement<D: Dialog> : UiEntity<D>(),
-    WidgetContainer {
+abstract class ModalElement<D : Dialog> : UiEntity<D>(),
+        WidgetContainer {
 
     var titleResId: Int? = null
 
@@ -41,8 +43,9 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(),
     protected open fun initSubscriptions(dialog: D?) {
         dialog ?: return
         isAppearedRelay
-            ?.subscribe { if (it) dialog.show() else dialog.hide() }
-            ?.untilLifecycleDestroy()
+                ?.observeOn(AndroidSchedulers.mainThread())
+                ?.subscribe { if (it) dialog.show() else dialog.hide() }
+                ?.untilLifecycleDestroy()
 
         onShow?.let { onShow ->
             dialog.setOnShowListener(DialogInterface.OnShowListener { onShow() })
@@ -55,12 +58,12 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(),
     }
 
     inline fun <reified V : View> vCustom(
-        size: LayoutSize,
-        init: WidgetElement<V>.() -> Unit
+            size: LayoutSize,
+            init: WidgetElement<V>.() -> Unit
     ): WidgetElement<V> {
         val vElement = object : WidgetElement<V>(size) {
             override fun createView(context: Context): V =
-                KotlifyInternals.initiateView(context, V::class.java)
+                    KotlifyInternals.initiateView(context, V::class.java)
         }
         vElement.init()
         vContent = vElement
@@ -70,7 +73,7 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(),
     inline fun <reified V : ViewGroup> vContainer(init: VContainer<V>.() -> Unit): VContainer<V> {
         val vContainer = object : VContainer<V>(Air) {
             override fun createView(context: Context): V =
-                KotlifyInternals.initiateView(context, V::class.java)
+                    KotlifyInternals.initiateView(context, V::class.java)
         }
         vContainer.init()
         vContent = vContainer
@@ -132,9 +135,9 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(),
     }
 
     override fun <E> vRecycler(
-        size: LayoutSize,
-        items: BehaviorRelay<List<E>>,
-        init: VRecycler<E>.() -> Unit
+            size: LayoutSize,
+            items: BehaviorRelay<List<E>>,
+            init: VRecycler<E>.() -> Unit
     ): VRecycler<E> {
         val vRecycler = VRecycler(itemsRelay = items, size = size)
         vRecycler.init()
@@ -143,13 +146,13 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(),
     }
 
     override fun vVertical(
-        size: LayoutSize,
-        init: VContainer<LinearLayout>.() -> Unit
+            size: LayoutSize,
+            init: VContainer<LinearLayout>.() -> Unit
     ): VContainer<LinearLayout> {
         val vContainer = object : VContainer<LinearLayout>(size) {
             override fun createView(context: Context): LinearLayout =
-                LinearLayout(context)
-                    .also { it.orientation = LinearLayout.VERTICAL }
+                    LinearLayout(context)
+                            .also { it.orientation = LinearLayout.VERTICAL }
         }
         vContainer.init()
         vContent = vContainer
@@ -159,8 +162,17 @@ abstract class ModalElement<D: Dialog> : UiEntity<D>(),
     override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VContainer<LinearLayout> {
         val vContainer = object : VContainer<LinearLayout>(Air) {
             override fun createView(context: Context): LinearLayout =
-                LinearLayout(context)
-                    .also { it.orientation = LinearLayout.VERTICAL }
+                    LinearLayout(context)
+                            .also { it.orientation = LinearLayout.VERTICAL }
+        }
+        vContainer.init()
+        vContent = vContainer
+        return vContainer
+    }
+
+    override fun vCard(size: LayoutSize, init: VContainer<CardView>.() -> Unit): VContainer<CardView> {
+        val vContainer = object : VContainer<CardView>(Earth) {
+            override fun createView(context: Context): CardView = CardView(context)
         }
         vContainer.init()
         vContent = vContainer

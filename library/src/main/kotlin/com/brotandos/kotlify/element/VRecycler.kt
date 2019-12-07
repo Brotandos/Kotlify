@@ -10,11 +10,12 @@ import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.container.VContainer
 import com.jakewharton.rxrelay2.BehaviorRelay
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 
 class VRecycler<E>(
-    private val itemsRelay: BehaviorRelay<List<E>>,
-    size: LayoutSize
+        private val itemsRelay: BehaviorRelay<List<E>>,
+        size: LayoutSize
 ) : WidgetElement<RecyclerView>(size) {
 
     private val items: List<E> get() = itemsRelay.value
@@ -28,8 +29,9 @@ class VRecycler<E>(
     override fun initSubscriptions(view: RecyclerView?) {
         super.initSubscriptions(view)
         itemsRelay
-            .subscribe { adapter?.notifyDataSetChanged() }
-            .untilLifecycleDestroy()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { adapter?.notifyDataSetChanged() }
+                .untilLifecycleDestroy()
     }
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): RecyclerView {
@@ -49,14 +51,15 @@ class VRecycler<E>(
     }
 
     private fun getAdapter(
-        kotlifyContext: KotlifyContext
+            kotlifyContext: KotlifyContext
     ) = object : RecyclerView.Adapter<KotlifyViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, position: Int): KotlifyViewHolder {
             val vElement = vItem?.invoke(items[position])
-                ?: throw RuntimeException("vItem is not set")
+                    ?: throw RuntimeException("vItem is not set")
             // TODO use custom exception
-            val path = pathInsideTree ?: throw RuntimeException("WidgetContainer#buildWidget method must be called before to initialize pathInsideTree")
+            val path = pathInsideTree
+                    ?: throw RuntimeException("WidgetContainer#buildWidget method must be called before to initialize pathInsideTree")
             val view = vElement.buildWidget(
                     parent.context,
                     kotlifyContext,
@@ -78,8 +81,8 @@ class VRecycler<E>(
     }
 
     class KotlifyViewHolder(
-        itemView: View,
-        private val widgetElement: WidgetElement<*>
+            itemView: View,
+            private val widgetElement: WidgetElement<*>
     ) : RecyclerView.ViewHolder(itemView), Disposable {
 
         override fun dispose() = widgetElement.dispose()

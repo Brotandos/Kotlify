@@ -13,6 +13,7 @@ import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.exception.ContextAnonymousException
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import java.util.concurrent.TimeUnit
 
@@ -56,7 +57,9 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
     var isEnabled: BehaviorRelay<Boolean>
         @Deprecated(NO_GETTER, level = DeprecationLevel.ERROR)
         get() = KotlifyInternals.noGetter()
-        set(value) { isEnabledRelay = value }
+        set(value) {
+            isEnabledRelay = value
+        }
 
     var clickRelay: PublishRelay<Unit> = PublishRelay.create()
 
@@ -66,22 +69,28 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
     ): Disposable {
         val clickDisposable = clickRelay
                 .throttleFirst(timeout.toLong(), ThrottleClickProperties.timeUnit)
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { onClick() }
         disposables.add(clickDisposable)
         return clickDisposable
     }
 
     fun onClick(f: () -> Unit): Disposable {
-        val clickDisposable = clickRelay.subscribe { f() }
+        val clickDisposable = clickRelay
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { f() }
         disposables.add(clickDisposable)
         return clickDisposable
     }
 
     private var viewInit: (V.() -> Unit)? = null
-    fun initView(init: V.() -> Unit) { viewInit = init }
+    fun initView(init: V.() -> Unit) {
+        viewInit = init
+    }
 
     @PublishedApi
     internal var layoutInit: (V.() -> Unit)? = null
+
     inline fun <reified T : ViewGroup.LayoutParams> initLayout(crossinline init: T.() -> Unit) {
         layoutInit = {
             val constructor = T::class.java.getConstructor(width::class.java, height::class.java)
@@ -104,19 +113,22 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
     protected open fun initSubscriptions(view: V?) {
         view ?: return
         isDarkRelay
-            ?.subscribe {
-                val (light, dark) = backgroundColors ?: return@subscribe
-                view.setBackgroundColor(if (it) dark else light)
-            }
-            ?.untilLifecycleDestroy()
+                ?.observeOn(AndroidSchedulers.mainThread())
+                ?.subscribe {
+                    val (light, dark) = backgroundColors ?: return@subscribe
+                    view.setBackgroundColor(if (it) dark else light)
+                }
+                ?.untilLifecycleDestroy()
 
         isAppearedRelay
-            ?.subscribe { view.visibility = if (it) View.VISIBLE else View.GONE }
-            ?.untilLifecycleDestroy()
+                ?.observeOn(AndroidSchedulers.mainThread())
+                ?.subscribe { view.visibility = if (it) View.VISIBLE else View.GONE }
+                ?.untilLifecycleDestroy()
 
         isEnabledRelay
-            ?.subscribe { view.isEnabled = it }
-            ?.untilLifecycleDestroy()
+                ?.observeOn(AndroidSchedulers.mainThread())
+                ?.subscribe { view.isEnabled = it }
+                ?.untilLifecycleDestroy()
     }
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): V {

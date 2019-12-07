@@ -6,6 +6,7 @@ import android.widget.TextView
 import androidx.annotation.ColorInt
 import com.brotandos.kotlify.common.LayoutSize
 import com.jakewharton.rxrelay2.BehaviorRelay
+import io.reactivex.android.schedulers.AndroidSchedulers
 
 class VLabel(size: LayoutSize) : WidgetElement<TextView>(size) {
 
@@ -45,9 +46,11 @@ class VLabel(size: LayoutSize) : WidgetElement<TextView>(size) {
     override fun initSubscriptions(view: TextView?) {
         super.initSubscriptions(view)
         textResourceRelay
+                ?.observeOn(AndroidSchedulers.mainThread())
                 ?.subscribe { view?.setText(it) }
                 ?.untilLifecycleDestroy()
                 ?: textRelay
+                        ?.observeOn(AndroidSchedulers.mainThread())
                         ?.subscribe { view?.text = it }
                         ?.untilLifecycleDestroy()
     }

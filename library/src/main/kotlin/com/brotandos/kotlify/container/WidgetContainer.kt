@@ -6,6 +6,7 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
+import androidx.cardview.widget.CardView
 import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.CustomSize
 import com.brotandos.kotlify.common.LayoutSize
@@ -73,6 +74,8 @@ interface WidgetContainer {
     ): VContainer<LinearLayout>
 
     fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VContainer<LinearLayout>
+
+    fun vCard(size: LayoutSize, init: VContainer<CardView>.() -> Unit): VContainer<CardView>
 
     // VLabel styles
     val textCenter: TextView.() -> Unit

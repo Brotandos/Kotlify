@@ -21,6 +21,7 @@ import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.LayoutSize
 import com.jakewharton.rxrelay2.BehaviorRelay
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 
 class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
@@ -63,9 +64,11 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
     override fun initSubscriptions(view: Toolbar?) {
         super.initSubscriptions(view)
         titleResId
+                ?.observeOn(AndroidSchedulers.mainThread())
                 ?.subscribe { view?.setTitle(it) }
                 ?.untilLifecycleDestroy()
                 ?: title
+                        ?.observeOn(AndroidSchedulers.mainThread())
                         ?.subscribe { view?.title = it }
                         ?.untilLifecycleDestroy()
     }
@@ -102,13 +105,13 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
     }
 
     fun vAction(
-        title: String,
-        iconResId: Int? = null,
-        isLoading: BehaviorRelay<Boolean>? = null,
-        init: VMenu.() -> Unit
+            title: String,
+            iconResId: Int? = null,
+            isLoading: BehaviorRelay<Boolean>? = null,
+            init: VMenu.() -> Unit
     ) {
         val vMenu =
-            VMenu(title) { untilLifecycleDestroy() }
+                VMenu(title) { untilLifecycleDestroy() }
         vMenu.iconResId = iconResId
         vMenu.isLoading = isLoading
         vMenu.init()
@@ -126,7 +129,9 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
         var iconResId: Int? = null
 
         private var onClick: (() -> Unit)? = null
-        fun onClick(f: () -> Unit) { onClick = f }
+        fun onClick(f: () -> Unit) {
+            onClick = f
+        }
 
         var vBadge: VBadge? = null
 
@@ -137,38 +142,39 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
                 iconResId?.let(::setImageResource)
                 val typedValue = TypedValue()
                 context.theme.resolveAttribute(
-                    android.R.attr.selectableItemBackgroundBorderless,
-                    typedValue,
-                    true
+                        android.R.attr.selectableItemBackgroundBorderless,
+                        typedValue,
+                        true
                 )
                 setBackgroundResource(typedValue.resourceId)
                 setPadding(2 * resources.displayMetrics.density.toInt())
 
                 layoutParams = RelativeLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
                 ).apply { addRule(RelativeLayout.CENTER_IN_PARENT) }
                 onClick?.let { onClick -> setOnClickListener { onClick() } }
             }
 
             val progressBar: ProgressBar? = ProgressBar(context).apply {
                 layoutParams = RelativeLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
                 ).apply { addRule(RelativeLayout.CENTER_IN_PARENT) }
             }
 
             isLoading
-                ?.subscribe {
-                    imageView?.visibility = if (it) View.GONE else View.VISIBLE
-                    progressBar?.visibility = if (it) View.VISIBLE else View.INVISIBLE
-                }
-                ?.addToComposite()
+                    ?.observeOn(AndroidSchedulers.mainThread())
+                    ?.subscribe {
+                        imageView?.visibility = if (it) View.GONE else View.VISIBLE
+                        progressBar?.visibility = if (it) View.VISIBLE else View.INVISIBLE
+                    }
+                    ?.addToComposite()
 
             menuItem.actionView = RelativeLayout(context).apply {
                 layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
                 ).apply { gravity = Gravity.CENTER }
                 addView(imageView)
                 addView(progressBar)

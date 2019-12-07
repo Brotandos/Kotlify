@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
+import androidx.cardview.widget.CardView
 import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
@@ -173,6 +174,15 @@ abstract class VContainer<V : ViewGroup>(
             override fun createView(context: Context): LinearLayout =
                 LinearLayout(context)
                     .also { it.orientation = LinearLayout.VERTICAL }
+        }
+        vContainer.init()
+        children += vContainer
+        return vContainer
+    }
+
+    override fun vCard(size: LayoutSize, init: VContainer<CardView>.() -> Unit): VContainer<CardView> {
+        val vContainer = object : VContainer<CardView>(Earth) {
+            override fun createView(context: Context): CardView = CardView(context)
         }
         vContainer.init()
         children += vContainer
