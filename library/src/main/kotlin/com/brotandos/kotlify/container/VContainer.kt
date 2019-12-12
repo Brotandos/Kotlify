@@ -181,7 +181,7 @@ abstract class VContainer<V : ViewGroup>(
     }
 
     override fun vCard(size: LayoutSize, init: VContainer<CardView>.() -> Unit): VContainer<CardView> {
-        val vContainer = object : VContainer<CardView>(Earth) {
+        val vContainer = object : VContainer<CardView>(size) {
             override fun createView(context: Context): CardView = CardView(context)
         }
         vContainer.init()

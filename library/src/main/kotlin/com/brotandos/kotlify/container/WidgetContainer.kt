@@ -35,6 +35,9 @@ interface WidgetContainer {
             MatchParent
         )
 
+    val actionBarSize
+        get() = android.R.attr.actionBarSize.dp.water
+
     fun vToolbar(
             size: LayoutSize = android.R.attr.actionBarSize.dp.water,
             init: VToolbar.() -> Unit

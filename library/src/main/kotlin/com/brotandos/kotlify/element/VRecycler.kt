@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.brotandos.kotlify.common.Air
 import com.brotandos.kotlify.common.KotlifyContext
@@ -40,6 +41,8 @@ class VRecycler<E>(
             view.adapter = it
             adapter = it
         }
+        // TODO make customizable
+        view.layoutManager = LinearLayoutManager(context)
         return view
     }
 
@@ -65,15 +68,11 @@ class VRecycler<E>(
                     kotlifyContext,
                     path + position
             )
+            vElement.untilLifecycleDestroy()
             return KotlifyViewHolder(view, vElement)
         }
 
         override fun onBindViewHolder(holder: KotlifyViewHolder, position: Int) = Unit
-
-        override fun onViewRecycled(holder: KotlifyViewHolder) {
-            super.onViewRecycled(holder)
-            holder.dispose()
-        }
 
         override fun getItemCount(): Int = items.size
 

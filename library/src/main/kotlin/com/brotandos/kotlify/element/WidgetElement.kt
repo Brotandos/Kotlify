@@ -6,6 +6,7 @@ import android.content.Intent
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
+import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.KotlifyInternals.NO_GETTER
@@ -22,8 +23,6 @@ const val ID_NOT_SET = -1
 private const val ID_KEY_SEPARATOR = "-"
 
 abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
-
-    var id = ID_NOT_SET
 
     protected var tag: Any? = null
 
@@ -46,6 +45,12 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
     private var backgroundColors: Pair<Int, Int>? = null
 
     private var activityToNavigateOnClick: Class<Activity>? = null
+
+    var id = ID_NOT_SET
+
+    var minWidth: CustomLength? = null
+
+    var minHeight: CustomLength? = null
 
     // TODO implement
     // open var isInvisible: BehaviorRelay<Boolean>? = null
@@ -132,17 +137,21 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
     }
 
     override fun build(context: Context, kotlifyContext: KotlifyContext): V {
+        val density = context.density
         val view = createView(context)
         if (id != ID_NOT_SET) {
             view.id = id
         }
-        val (width, height) = size.getValuePair(context.density)
+        val (width, height) = size.getValuePair(density)
         view.layoutParams = ViewGroup.LayoutParams(width, height)
         viewInit?.invoke(view)
         layoutInit?.invoke(view)
         initSubscriptions(view)
-        view.setOnClickListener {
-            clickRelay.accept(Unit)
+        // FIXME itemView inside VRecycler doesn't emit WidgetElement#onClick
+        if (!view.hasOnClickListeners()) {
+            view.setOnClickListener {
+                clickRelay.accept(Unit)
+            }
         }
         activityToNavigateOnClick?.let {
             throttleClick {
@@ -150,6 +159,8 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
                 context.startActivity(intent)
             }
         }
+        minWidth?.let { view.minimumWidth = it.getValue(density) }
+        minHeight?.let { view.minimumHeight = it.getValue(density) }
         return view
     }
 

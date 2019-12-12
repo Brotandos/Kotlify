@@ -31,6 +31,8 @@ abstract class ModalElement<D : Dialog> : UiEntity<D>(),
 
     var title: String? = null
 
+    var titleRelay: BehaviorRelay<String>? = null
+
     var cancellable: Boolean? = null
 
     var vContent: WidgetElement<*>? = null
@@ -171,7 +173,7 @@ abstract class ModalElement<D : Dialog> : UiEntity<D>(),
     }
 
     override fun vCard(size: LayoutSize, init: VContainer<CardView>.() -> Unit): VContainer<CardView> {
-        val vContainer = object : VContainer<CardView>(Earth) {
+        val vContainer = object : VContainer<CardView>(size) {
             override fun createView(context: Context): CardView = CardView(context)
         }
         vContainer.init()
