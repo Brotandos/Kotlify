@@ -13,9 +13,11 @@ import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.CustomSize
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.common.MatchParent
+import com.brotandos.kotlify.element.ToggleOption
 import com.brotandos.kotlify.element.VImage
 import com.brotandos.kotlify.element.VLabel
 import com.brotandos.kotlify.element.VRecycler
+import com.brotandos.kotlify.element.VToggleGroup
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
@@ -107,6 +109,12 @@ interface WidgetContainer {
     fun vImage(size: LayoutSize, resId: Int, init: VImage.() -> Unit): VImage
 
     fun vImage(size: LayoutSize, url: String, init: VImage.() -> Unit): VImage
+
+    fun <T : ToggleOption> vToggleGroup(
+            size: LayoutSize,
+            selectedOption: BehaviorRelay<T>,
+            init: VToggleGroup<T>.() -> Unit
+    ): VToggleGroup<T>
 
     // VLabel styles
     val textCenter: TextView.() -> Unit

@@ -18,10 +18,12 @@ import com.brotandos.kotlify.container.VContainer
 import com.brotandos.kotlify.container.VToolbar
 import com.brotandos.kotlify.container.WidgetContainer
 import com.brotandos.kotlify.element.LayoutManager
+import com.brotandos.kotlify.element.ToggleOption
 import com.brotandos.kotlify.element.UiEntity
 import com.brotandos.kotlify.element.VImage
 import com.brotandos.kotlify.element.VLabel
 import com.brotandos.kotlify.element.VRecycler
+import com.brotandos.kotlify.element.VToggleGroup
 import com.brotandos.kotlify.element.WidgetElement
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -224,6 +226,18 @@ abstract class ModalElement<D : Dialog> : UiEntity<D>(),
         vImage.init()
         vContent = vImage
         return vImage
+    }
+
+    override fun <T : ToggleOption> vToggleGroup(
+            size: LayoutSize,
+            selectedOption: BehaviorRelay<T>,
+            init: VToggleGroup<T>.() -> Unit
+    ): VToggleGroup<T> {
+        val vToggleGroup = VToggleGroup<T>(size)
+        vToggleGroup.selectedOption = selectedOption
+        vToggleGroup.init()
+        vContent = vToggleGroup
+        return vToggleGroup
     }
 
     override fun dispose() {
