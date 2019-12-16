@@ -46,6 +46,6 @@ class CustomLength(coefficient: Int) : LayoutLength(coefficient) {
     override fun getValue(density: Int): Int =
         if (coefficient == 0) 0 else density * coefficient
 
-    infix fun x(height: CustomLength) =
+    infix fun x(height: LayoutLength) =
         CustomSize(this, height)
 }

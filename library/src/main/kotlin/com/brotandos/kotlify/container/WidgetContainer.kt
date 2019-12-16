@@ -1,7 +1,9 @@
 package com.brotandos.kotlify.container
 
+import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
+import android.util.TypedValue
 import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -11,6 +13,7 @@ import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.CustomSize
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.common.MatchParent
+import com.brotandos.kotlify.element.VImage
 import com.brotandos.kotlify.element.VLabel
 import com.brotandos.kotlify.element.VRecycler
 import com.jakewharton.rxrelay2.BehaviorRelay
@@ -35,11 +38,19 @@ interface WidgetContainer {
             MatchParent
         )
 
-    val actionBarSize
-        get() = android.R.attr.actionBarSize.dp.water
+    // FIXME real height smaller than from xml
+    val Context.actionBarSize: LayoutSize
+        get() {
+            val typedValue = TypedValue()
+            theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)
+                    .takeIf { it }
+                    ?: return 70.dp.water
+            val height = TypedValue.complexToFloat(typedValue.data).toInt()
+            return height.dp.water
+        }
 
     fun vToolbar(
-            size: LayoutSize = android.R.attr.actionBarSize.dp.water,
+            size: LayoutSize = 50.dp.water,
             init: VToolbar.() -> Unit
     ): VToolbar
 
@@ -65,11 +76,22 @@ interface WidgetContainer {
             init: VLabel.() -> Unit
     ): VLabel
 
-    fun <E> vRecycler(
+    fun <E> vList(
         size: LayoutSize,
         items: BehaviorRelay<List<E>>,
         init: VRecycler<E>.() -> Unit
     ): VRecycler<E>
+
+    fun <E> vGrid(
+            size: LayoutSize,
+            items: BehaviorRelay<List<E>>,
+            init: VRecycler<E>.() -> Unit
+    ): VRecycler<E>
+
+    fun vLinear(
+            size: LayoutSize,
+            init: VContainer<LinearLayout>.() -> Unit
+    ): VContainer<LinearLayout>
 
     fun vVertical(
         size: LayoutSize,
@@ -78,7 +100,13 @@ interface WidgetContainer {
 
     fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VContainer<LinearLayout>
 
-    fun vCard(size: LayoutSize, init: VContainer<CardView>.() -> Unit): VContainer<CardView>
+    fun vCard(size: LayoutSize, init: VCard.() -> Unit): VCard
+
+    fun vConstraint(size: LayoutSize, init: VConstraint.() -> Unit): VConstraint
+
+    fun vImage(size: LayoutSize, resId: Int, init: VImage.() -> Unit): VImage
+
+    fun vImage(size: LayoutSize, url: String, init: VImage.() -> Unit): VImage
 
     // VLabel styles
     val textCenter: TextView.() -> Unit
@@ -86,6 +114,15 @@ interface WidgetContainer {
 
     operator fun Typeface.unaryPlus(): TextView.() -> Unit =
             { typeface = this@unaryPlus }
+
+    val Typeface.bold: TextView.() -> Unit
+        get() = { setTypeface(this@bold, Typeface.BOLD) }
+
+    val Typeface.italic: TextView.() -> Unit
+        get() = { setTypeface(this@italic, Typeface.ITALIC) }
+
+    val Typeface.boldItalic: TextView.() -> Unit
+        get() =  { setTypeface(this@boldItalic, Typeface.BOLD_ITALIC) }
 
     val bold: TextView.() -> Unit
         get() = { setTypeface(typeface, Typeface.BOLD) }

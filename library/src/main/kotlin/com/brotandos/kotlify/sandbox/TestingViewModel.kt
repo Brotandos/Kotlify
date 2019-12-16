@@ -76,7 +76,7 @@ class TestingViewModel : ViewModel() {
                 }
             }
 
-            vRecycler(Water, listRelay) {
+            vList(Water, listRelay) {
                 initView { layoutManager = LinearLayoutManager(context) }
                 vItem {
                     vCustom<TextView> {

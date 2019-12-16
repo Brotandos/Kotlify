@@ -7,14 +7,15 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
-import androidx.cardview.widget.CardView
 import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.container.modal.VBottomSheetDialog
 import com.brotandos.kotlify.container.modal.VDialog
+import com.brotandos.kotlify.element.LayoutManager
 import com.brotandos.kotlify.element.UiEntity
+import com.brotandos.kotlify.element.VImage
 import com.brotandos.kotlify.element.VLabel
 import com.brotandos.kotlify.element.VRecycler
 import com.brotandos.kotlify.element.WidgetElement
@@ -144,15 +145,37 @@ abstract class VContainer<V : ViewGroup>(
         return vLabel
     }
 
-    override fun <E> vRecycler(
+    override fun <E> vList(
         size: LayoutSize,
         items: BehaviorRelay<List<E>>,
         init: VRecycler<E>.() -> Unit
     ): VRecycler<E> {
-        val vRecycler = VRecycler(size = size, itemsRelay = items)
+        val vRecycler = VRecycler(
+                itemsRelay = items,
+                layoutManager = LayoutManager.Linear,
+                size = size
+        )
         vRecycler.init()
         children += vRecycler
         return vRecycler
+    }
+
+    override fun <E> vGrid(
+            size: LayoutSize,
+            items: BehaviorRelay<List<E>>,
+            init: VRecycler<E>.() -> Unit
+    ): VRecycler<E> = TODO("not implemented")
+
+    override fun vLinear(
+            size: LayoutSize,
+            init: VContainer<LinearLayout>.() -> Unit
+    ): VContainer<LinearLayout> {
+        val vContainer = object : VContainer<LinearLayout>(size) {
+            override fun createView(context: Context): LinearLayout = LinearLayout(context)
+        }
+        vContainer.init()
+        children += vContainer
+        return vContainer
     }
 
     override fun vVertical(
@@ -180,13 +203,34 @@ abstract class VContainer<V : ViewGroup>(
         return vContainer
     }
 
-    override fun vCard(size: LayoutSize, init: VContainer<CardView>.() -> Unit): VContainer<CardView> {
-        val vContainer = object : VContainer<CardView>(size) {
-            override fun createView(context: Context): CardView = CardView(context)
-        }
-        vContainer.init()
-        children += vContainer
-        return vContainer
+    override fun vCard(size: LayoutSize, init: VCard.() -> Unit): VCard {
+        val vCard = VCard(size)
+        vCard.init()
+        children += vCard
+        return vCard
+    }
+
+    override fun vConstraint(size: LayoutSize, init: VConstraint.() -> Unit): VConstraint {
+        val vConstraint = VConstraint(size)
+        vConstraint.init()
+        children += vConstraint
+        return vConstraint
+    }
+
+    override fun vImage(size: LayoutSize, resId: Int, init: VImage.() -> Unit): VImage {
+        val vImage = VImage(size)
+        vImage.imageResId = BehaviorRelay.createDefault(resId)
+        vImage.init()
+        children += vImage
+        return vImage
+    }
+
+    override fun vImage(size: LayoutSize, url: String, init: VImage.() -> Unit): VImage {
+        val vImage = VImage(size)
+        vImage.imageUrl = url
+        vImage.init()
+        children += vImage
+        return vImage
     }
 
     @Throws(RuntimeException::class)

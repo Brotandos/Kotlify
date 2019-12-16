@@ -6,5 +6,11 @@ import com.brotandos.kotlify.common.LayoutSize
 
 class VCard(size: LayoutSize) : VContainer<CardView>(size) {
 
-    override fun createView(context: Context): CardView = CardView(context)
+    var radius: Float? = null
+
+    override fun createView(context: Context): CardView {
+        val view = CardView(context)
+        radius?.let(view::setRadius)
+        return view
+    }
 }

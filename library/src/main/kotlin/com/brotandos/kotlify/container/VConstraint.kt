@@ -2,6 +2,7 @@ package com.brotandos.kotlify.container
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.text.style.LineHeightSpan
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
@@ -9,6 +10,7 @@ import androidx.core.content.edit
 import androidx.core.view.children
 import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.KotlifyInternals
+import com.brotandos.kotlify.common.LayoutLength
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.element.ID_NOT_SET
 import com.brotandos.kotlify.element.WidgetElement
@@ -21,15 +23,12 @@ private val CONSTRAINT_TARGET_PARENT = null
 
 typealias ConstraintMap = MutableMap<
         WidgetElement<*>,
-        MutableMap<ConstraintSide, ConstraintTarget>
+        MutableMap<ConstraintSide, () -> ConstraintTarget>
 >
 
 class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
 
-    private val constraints = mutableMapOf<
-            WidgetElement<*>,
-            MutableMap<ConstraintSide, () -> ConstraintTarget>
-    >()
+    private val constraints: ConstraintMap = mutableMapOf()
 
     private val constraintLayoutInits = mutableListOf<(ConstraintSet) -> Unit>()
 
@@ -113,6 +112,15 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
     fun WidgetElement<*>.bottomTo(targetGetter: () -> VerticalTarget) =
             addConstraint(this, ConstraintSide.Bottom, targetGetter)
 
+    fun WidgetElement<*>.lparams(
+            density: Int,
+            init: ConstraintLayout.LayoutParams.() -> Unit
+    ) {
+        val (widgetWidth, widgetHeight) = size.getValuePair(density)
+        val layoutParams = ConstraintLayout.LayoutParams(widgetWidth, widgetHeight)
+        layoutParams.init()
+    }
+
     private fun addConstraint(
             sourceWidget: WidgetElement<*>,
             sourceSide: ConstraintSide,
@@ -135,6 +143,18 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
         get() = KotlifyInternals.noGetter()
         set(value) {
             constraintLayoutInits += { it.setVerticalBias(id, value) }
+        }
+
+    var defaultWidth: Int
+        get() = KotlifyInternals.noGetter()
+        set(value) {
+            constraintLayoutInits += { it.constrainDefaultWidth(id, value) }
+        }
+
+    var defaultHeight: Int
+        get() = KotlifyInternals.noGetter()
+        set(value) {
+            constraintLayoutInits += { it.constrainDefaultHeight(id, value) }
         }
 
     operator fun HorizontalTarget.plus(customLength: CustomLength) = HorizontalTarget(

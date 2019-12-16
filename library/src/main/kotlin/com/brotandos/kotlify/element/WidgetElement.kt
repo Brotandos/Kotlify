@@ -22,6 +22,11 @@ const val ID_NOT_SET = -1
 
 private const val ID_KEY_SEPARATOR = "-"
 
+/**
+ * TODO List:
+ * - Classify properties: (e.g: vRootOwnerName and packageName to identifiers)
+ * - Encapsulate relay properties using [KotlifyInternals.noGetter]
+ * */
 abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     protected var tag: Any? = null

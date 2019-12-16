@@ -4,8 +4,10 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.brotandos.kotlify.common.Air
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.LayoutSize
@@ -16,6 +18,7 @@ import io.reactivex.disposables.Disposable
 
 class VRecycler<E>(
         private val itemsRelay: BehaviorRelay<List<E>>,
+        private val layoutManager: LayoutManager,
         size: LayoutSize
 ) : WidgetElement<RecyclerView>(size) {
 
@@ -41,8 +44,14 @@ class VRecycler<E>(
             view.adapter = it
             adapter = it
         }
-        // TODO make customizable
-        view.layoutManager = LinearLayoutManager(context)
+        view.layoutManager = when (layoutManager){
+            is LayoutManager.Linear -> LinearLayoutManager(context)
+            is LayoutManager.Grid -> GridLayoutManager(context, layoutManager.spanCount)
+            is LayoutManager.Staggered -> StaggeredGridLayoutManager(
+                    layoutManager.spanCount,
+                    if (layoutManager.isVertical) RecyclerView.VERTICAL else RecyclerView.HORIZONTAL
+            )
+        }
         return view
     }
 
@@ -88,4 +97,10 @@ class VRecycler<E>(
 
         override fun isDisposed(): Boolean = widgetElement.isDisposed
     }
+}
+
+sealed class LayoutManager {
+    object Linear : LayoutManager()
+    data class Grid(val spanCount: Int) : LayoutManager()
+    data class Staggered(val spanCount: Int, val isVertical: Boolean) : LayoutManager()
 }
