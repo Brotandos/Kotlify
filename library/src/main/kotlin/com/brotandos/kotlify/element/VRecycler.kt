@@ -15,18 +15,23 @@ import com.brotandos.kotlify.container.VContainer
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import kotlin.reflect.KClass
 
-class VRecycler<E>(
-        private val itemsRelay: BehaviorRelay<List<E>>,
+/**
+ * TODO list:
+ * - Find way to use own ViewHolder for each viewType
+ * */
+class VRecycler(
+        private val itemsRelay: BehaviorRelay<List<Item>>,
         private val layoutManager: LayoutManager,
         size: LayoutSize
 ) : WidgetElement<RecyclerView>(size) {
 
-    private val items: List<E> get() = itemsRelay.value
+    private val items: List<Item> get() = itemsRelay.value
 
     private var adapter: RecyclerView.Adapter<KotlifyViewHolder>? = null
 
-    private var vItem: ((E) -> WidgetElement<*>)? = null
+    val itemsMarkupMap = mutableMapOf<KClass<*>, (Item) -> WidgetElement<*>>()
 
     override fun createView(context: Context): RecyclerView = RecyclerView(context)
 
@@ -55,19 +60,14 @@ class VRecycler<E>(
         return view
     }
 
-    fun vItem(itemView: VContainer<*>.(E) -> WidgetElement<*>) {
-        val vContainer = object : VContainer<FrameLayout>(Air) {
-            override fun createView(context: Context): FrameLayout = FrameLayout(context)
-        }
-        vItem = { vContainer.itemView(it) }
-    }
-
     private fun getAdapter(
             kotlifyContext: KotlifyContext
     ) = object : RecyclerView.Adapter<KotlifyViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, position: Int): KotlifyViewHolder {
-            val vElement = vItem?.invoke(items[position])
+            val item = items[position]
+            val vElement = itemsMarkupMap[item::class]
+                    ?.invoke(item)
                     ?: throw RuntimeException("vItem is not set")
             // TODO use custom exception
             val path = pathInsideTree
@@ -97,10 +97,23 @@ class VRecycler<E>(
 
         override fun isDisposed(): Boolean = widgetElement.isDisposed
     }
+
+    interface Item
 }
 
 sealed class LayoutManager {
     object Linear : LayoutManager()
     data class Grid(val spanCount: Int) : LayoutManager()
     data class Staggered(val spanCount: Int, val isVertical: Boolean) : LayoutManager()
+}
+
+inline fun <reified E : VRecycler.Item> VRecycler.viewType(
+        crossinline itemView: VContainer<*>.(E) -> WidgetElement<*>
+) {
+    val vContainer = object : VContainer<FrameLayout>(Air) {
+        override fun createView(context: Context): FrameLayout = FrameLayout(context)
+    }
+    itemsMarkupMap[E::class] = {
+        vContainer.itemView(it as E)
+    }
 }

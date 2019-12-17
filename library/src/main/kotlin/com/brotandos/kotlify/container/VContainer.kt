@@ -147,11 +147,11 @@ abstract class VContainer<V : ViewGroup>(
         return vLabel
     }
 
-    override fun <E> vList(
+    override fun vList(
         size: LayoutSize,
-        items: BehaviorRelay<List<E>>,
-        init: VRecycler<E>.() -> Unit
-    ): VRecycler<E> {
+        items: BehaviorRelay<List<VRecycler.Item>>,
+        init: VRecycler.() -> Unit
+    ): VRecycler {
         val vRecycler = VRecycler(
                 itemsRelay = items,
                 layoutManager = LayoutManager.Linear,
@@ -162,11 +162,11 @@ abstract class VContainer<V : ViewGroup>(
         return vRecycler
     }
 
-    override fun <E> vGrid(
+    override fun vGrid(
             size: LayoutSize,
-            items: BehaviorRelay<List<E>>,
-            init: VRecycler<E>.() -> Unit
-    ): VRecycler<E> = TODO("not implemented")
+            items: BehaviorRelay<List<VRecycler.Item>>,
+            init: VRecycler.() -> Unit
+    ): VRecycler = TODO("not implemented")
 
     override fun vLinear(
             size: LayoutSize,

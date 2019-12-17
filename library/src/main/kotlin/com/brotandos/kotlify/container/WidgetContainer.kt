@@ -78,17 +78,17 @@ interface WidgetContainer {
             init: VLabel.() -> Unit
     ): VLabel
 
-    fun <E> vList(
+    fun vList(
         size: LayoutSize,
-        items: BehaviorRelay<List<E>>,
-        init: VRecycler<E>.() -> Unit
-    ): VRecycler<E>
+        items: BehaviorRelay<List<VRecycler.Item>>,
+        init: VRecycler.() -> Unit
+    ): VRecycler
 
-    fun <E> vGrid(
+    fun vGrid(
             size: LayoutSize,
-            items: BehaviorRelay<List<E>>,
-            init: VRecycler<E>.() -> Unit
-    ): VRecycler<E>
+            items: BehaviorRelay<List<VRecycler.Item>>,
+            init: VRecycler.() -> Unit
+    ): VRecycler
 
     fun vLinear(
             size: LayoutSize,

@@ -15,6 +15,8 @@ import com.brotandos.kotlify.container.VContainer
 import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.container.root.VRootOwner
 import com.brotandos.kotlify.container.root.vRoot
+import com.brotandos.kotlify.element.VRecycler
+import com.brotandos.kotlify.element.viewType
 import com.jakewharton.rxrelay2.BehaviorRelay
 
 class TestingViewModel : ViewModel() {
@@ -25,7 +27,14 @@ class TestingViewModel : ViewModel() {
     private val isLoading2 = BehaviorRelay.createDefault(false)
     private val isDialog = BehaviorRelay.createDefault(false)
     private val isBottomDialog = BehaviorRelay.createDefault(false)
-    private val listRelay = BehaviorRelay.createDefault(listOf(1, 2, 3, 4, 5))
+    private val listRelay = BehaviorRelay.createDefault(
+            listOf(
+                    Number(1),
+                    Text("a"),
+                    Text("b"),
+                    Number(2)
+            )
+    )
     private val isBottomSheetButtonVisible = BehaviorRelay.createDefault(false)
 
     private lateinit var vRoot: VRoot<*>
@@ -78,10 +87,18 @@ class TestingViewModel : ViewModel() {
 
             vList(Water, listRelay) {
                 initView { layoutManager = LinearLayoutManager(context) }
-                vItem {
+                viewType<Number> {
                     vCustom<TextView> {
                         initView {
                             setTextColor(Color.RED)
+                            text = it.toString()
+                        }
+                    }
+                }
+                viewType<Text> {
+                    vCustom<TextView> {
+                        initView {
+                            setTextColor(Color.BLUE)
                             text = it.toString()
                         }
                     }
@@ -113,4 +130,7 @@ class TestingViewModel : ViewModel() {
             }
         }
     }
+
+    class Number(val value: Int) : VRecycler.Item
+    class Text(val value: String) : VRecycler.Item
 }
