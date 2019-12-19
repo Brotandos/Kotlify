@@ -17,6 +17,7 @@ import com.brotandos.kotlify.element.ToggleOption
 import com.brotandos.kotlify.element.VImage
 import com.brotandos.kotlify.element.VLabel
 import com.brotandos.kotlify.element.VRecycler
+import com.brotandos.kotlify.element.VSimpleToggle
 import com.brotandos.kotlify.element.VToggleGroup
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
@@ -115,6 +116,12 @@ interface WidgetContainer {
             selectedOption: BehaviorRelay<T>,
             init: VToggleGroup<T>.() -> Unit
     ): VToggleGroup<T>
+
+    fun <T : ToggleOption> T.vSimpleToggle(
+            size: LayoutSize,
+            selectedOption: BehaviorRelay<T>,
+            init: VSimpleToggle<T>.() -> Unit
+    ): VSimpleToggle<T>
 
     // VLabel styles
     val textCenter: TextView.() -> Unit

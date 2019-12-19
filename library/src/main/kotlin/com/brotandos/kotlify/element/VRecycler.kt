@@ -20,6 +20,9 @@ import kotlin.reflect.KClass
 /**
  * TODO list:
  * - Find way to use own ViewHolder for each viewType
+ * - Add ability to add and remove data
+ * - Add pagination
+ * - Store items by node (each element has reference to previous and next elements)
  * */
 class VRecycler(
         private val itemsRelay: BehaviorRelay<List<Item>>,
@@ -27,11 +30,16 @@ class VRecycler(
         size: LayoutSize
 ) : WidgetElement<RecyclerView>(size) {
 
+    private val itemsActions = BehaviorRelay.createDefault<RecyclerItemsActions<Item>>(
+            RecyclerItemsActions.Empty
+    )
+
     private val items: List<Item> get() = itemsRelay.value
 
     private var adapter: RecyclerView.Adapter<KotlifyViewHolder>? = null
 
-    val itemsMarkupMap = mutableMapOf<KClass<*>, (Item) -> WidgetElement<*>>()
+    @PublishedApi
+    internal val itemsMarkupMap = mutableMapOf<KClass<*>, (Item) -> WidgetElement<*>>()
 
     override fun createView(context: Context): RecyclerView = RecyclerView(context)
 
@@ -40,6 +48,28 @@ class VRecycler(
         itemsRelay
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { adapter?.notifyDataSetChanged() }
+                .untilLifecycleDestroy()
+
+        itemsActions
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    when (it) {
+                        is RecyclerItemsActions.Empty -> {}
+                        is RecyclerItemsActions.AddItem<Item> -> {
+                            adapter?.notifyItemInserted(it.index)
+
+                        }
+                        is RecyclerItemsActions.AddItems<Item> -> {
+                            adapter?.notifyItemRangeInserted(it.index, it.items.size)
+                        }
+                        is RecyclerItemsActions.RemoveItem<*> -> {
+                            adapter?.notifyItemRemoved(it.index)
+                        }
+                        is RecyclerItemsActions.RemoveItems<*> -> {
+                            adapter?.notifyItemRangeRemoved(it.startIndex, it.itemsCount)
+                        }
+                    }
+                }
                 .untilLifecycleDestroy()
     }
 
@@ -88,6 +118,17 @@ class VRecycler(
         override fun getItemViewType(position: Int) = position
     }
 
+    inline fun <reified E : Item> vItem(
+            crossinline itemView: VContainer<*>.(E) -> WidgetElement<*>
+    ) {
+        val vContainer = object : VContainer<FrameLayout>(Air) {
+            override fun createView(context: Context): FrameLayout = FrameLayout(context)
+        }
+        itemsMarkupMap[E::class] = {
+            vContainer.itemView(it as E)
+        }
+    }
+
     class KotlifyViewHolder(
             itemView: View,
             private val widgetElement: WidgetElement<*>
@@ -107,13 +148,16 @@ sealed class LayoutManager {
     data class Staggered(val spanCount: Int, val isVertical: Boolean) : LayoutManager()
 }
 
-inline fun <reified E : VRecycler.Item> VRecycler.viewType(
-        crossinline itemView: VContainer<*>.(E) -> WidgetElement<*>
-) {
-    val vContainer = object : VContainer<FrameLayout>(Air) {
-        override fun createView(context: Context): FrameLayout = FrameLayout(context)
-    }
-    itemsMarkupMap[E::class] = {
-        vContainer.itemView(it as E)
-    }
+sealed class RecyclerItemsActions<T : VRecycler.Item> {
+    object Empty : RecyclerItemsActions<VRecycler.Item>()
+    class AddItem<T : VRecycler.Item>(val item: T, val index: Int = 0) : RecyclerItemsActions<T>()
+    class AddItems<T : VRecycler.Item>(
+            val items: List<T>,
+            val index: Int = 0
+    ) : RecyclerItemsActions<T>()
+    class RemoveItem<T : VRecycler.Item>(val index: Int) : RecyclerItemsActions<T>()
+    class RemoveItems<T : VRecycler.Item>(
+            val itemsCount: Int,
+            val startIndex: Int = 0
+    )
 }

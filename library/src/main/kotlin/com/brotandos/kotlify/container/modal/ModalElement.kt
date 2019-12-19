@@ -23,6 +23,7 @@ import com.brotandos.kotlify.element.UiEntity
 import com.brotandos.kotlify.element.VImage
 import com.brotandos.kotlify.element.VLabel
 import com.brotandos.kotlify.element.VRecycler
+import com.brotandos.kotlify.element.VSimpleToggle
 import com.brotandos.kotlify.element.VToggleGroup
 import com.brotandos.kotlify.element.WidgetElement
 import com.jakewharton.rxrelay2.BehaviorRelay
@@ -238,6 +239,19 @@ abstract class ModalElement<D : Dialog> : UiEntity<D>(),
         vToggleGroup.init()
         vContent = vToggleGroup
         return vToggleGroup
+    }
+
+    override fun <T : ToggleOption> T.vSimpleToggle(
+            size: LayoutSize,
+            selectedOption: BehaviorRelay<T>,
+            init: VSimpleToggle<T>.() -> Unit
+    ): VSimpleToggle<T> {
+        val vSimpleToggle = VSimpleToggle<T>(size)
+        vSimpleToggle.model = this
+        vSimpleToggle.selectedOption = selectedOption
+        vSimpleToggle.init()
+        vContent = vSimpleToggle
+        return vSimpleToggle
     }
 
     override fun dispose() {

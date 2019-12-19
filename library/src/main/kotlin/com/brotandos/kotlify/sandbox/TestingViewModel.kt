@@ -16,7 +16,6 @@ import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.container.root.VRootOwner
 import com.brotandos.kotlify.container.root.vRoot
 import com.brotandos.kotlify.element.VRecycler
-import com.brotandos.kotlify.element.viewType
 import com.jakewharton.rxrelay2.BehaviorRelay
 
 class TestingViewModel : ViewModel() {
@@ -87,7 +86,7 @@ class TestingViewModel : ViewModel() {
 
             vList(Water, listRelay) {
                 initView { layoutManager = LinearLayoutManager(context) }
-                viewType<Number> {
+                vItem<Number> {
                     vCustom<TextView> {
                         initView {
                             setTextColor(Color.RED)
@@ -95,7 +94,7 @@ class TestingViewModel : ViewModel() {
                         }
                     }
                 }
-                viewType<Text> {
+                vItem<Text> {
                     vCustom<TextView> {
                         initView {
                             setTextColor(Color.BLUE)

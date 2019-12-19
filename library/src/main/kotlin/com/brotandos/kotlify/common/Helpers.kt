@@ -3,6 +3,7 @@ package com.brotandos.kotlify.common
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.os.Parcelable
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
@@ -33,6 +34,18 @@ inline fun <reified VM : ViewModel> FragmentActivity.viewModels(): Lazy<VM> =
 inline fun <reified T : Activity> Activity.startActivity(flags: Int = NO_FLAGS) {
     val intent = Intent(this, T::class.java)
     if (flags != NO_FLAGS) intent.addFlags(flags)
+    startActivity(intent)
+}
+
+inline fun <reified T : Activity> Activity.startActivity(
+        vararg parcelables: Pair<String, Parcelable>,
+        flags: Int = NO_FLAGS
+) {
+    val intent = Intent(this, T::class.java)
+    if (flags != NO_FLAGS) intent.addFlags(flags)
+    parcelables.forEach {
+        intent.putExtra(it.first, it.second)
+    }
     startActivity(intent)
 }
 

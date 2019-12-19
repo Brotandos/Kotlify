@@ -9,9 +9,11 @@ import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.edit
 import androidx.core.view.children
 import com.brotandos.kotlify.common.CustomLength
+import com.brotandos.kotlify.common.CustomSize
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutLength
 import com.brotandos.kotlify.common.LayoutSize
+import com.brotandos.kotlify.common.WrapContent
 import com.brotandos.kotlify.element.ID_NOT_SET
 import com.brotandos.kotlify.element.WidgetElement
 
@@ -41,6 +43,8 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
     val WidgetElement<*>.top get() = VerticalTarget(TOP_SIDE_POLE, this)
     val WidgetElement<*>.end get() = HorizontalTarget(END_SIDE_POLE, this)
     val WidgetElement<*>.bottom get() = VerticalTarget(BOTTOM_SIDE_POLE, this)
+
+    val restSpaceWater = CustomSize(0.dp, WrapContent)
 
     override fun createView(context: Context) = ConstraintLayout(context)
 
@@ -181,9 +185,6 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
             margin = CustomLength(-customLength.coefficient)
     )
 }
-
-inline fun <reified T : WidgetElement<*>> lateinit(): T =
-        KotlifyInternals.initiateWidget(T::class.java)
 
 /**
  * If [ConstraintSidePole.POSITIVE], then side is [ConstraintSide.Start] or [ConstraintSide.Top]
