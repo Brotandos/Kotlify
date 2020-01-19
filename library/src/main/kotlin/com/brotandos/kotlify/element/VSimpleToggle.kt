@@ -23,7 +23,8 @@ class VSimpleToggle<T : ToggleOption>(
             button.textOn = it
         }
         button.setOnCheckedChangeListener { _, isChecked ->
-            if (isCheckedRelay?.value == isChecked) return@setOnCheckedChangeListener
+            if (isCheckedRelay?.value == isChecked) return@setOnCheckedChangeListener button.setChecked(true)
+
             if (isChecked) {
                 selectedOption?.accept(model)
             }

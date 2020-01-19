@@ -7,6 +7,7 @@ import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.KotlifyLifecycleObserver
 import com.brotandos.kotlify.container.VContainer
+import io.reactivex.disposables.Disposable
 
 class VRoot<T : VContainer<*>>(
         private val vContainer: T
@@ -28,6 +29,8 @@ class VRoot<T : VContainer<*>>(
     fun clearObservers(lifecycleOwner: LifecycleOwner) {
         lifecycleObserver?.let(lifecycleOwner.lifecycle::removeObserver)
     }
+
+    fun addToComposite(disposable: Disposable) = vContainer.addToComposite(disposable)
 }
 
 inline fun <reified T : VContainer<*>> Activity.vRoot(

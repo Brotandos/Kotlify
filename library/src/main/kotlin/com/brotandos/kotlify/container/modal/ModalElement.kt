@@ -10,19 +10,22 @@ import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.annotation.StringRes
 import com.brotandos.kotlify.common.Air
+import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.container.VCard
 import com.brotandos.kotlify.container.VConstraint
 import com.brotandos.kotlify.container.VContainer
+import com.brotandos.kotlify.container.VLinear
 import com.brotandos.kotlify.container.VToolbar
+import com.brotandos.kotlify.container.VVertical
 import com.brotandos.kotlify.container.WidgetContainer
-import com.brotandos.kotlify.element.LayoutManager
+import com.brotandos.kotlify.element.list.LayoutManager
 import com.brotandos.kotlify.element.ToggleOption
 import com.brotandos.kotlify.element.UiEntity
 import com.brotandos.kotlify.element.VImage
 import com.brotandos.kotlify.element.VLabel
-import com.brotandos.kotlify.element.VRecycler
+import com.brotandos.kotlify.element.list.VRecycler
 import com.brotandos.kotlify.element.VSimpleToggle
 import com.brotandos.kotlify.element.VToggleGroup
 import com.brotandos.kotlify.element.WidgetElement
@@ -165,10 +168,8 @@ abstract class ModalElement<D : Dialog> : UiEntity<D>(),
     override fun vLinear(
             size: LayoutSize,
             init: VContainer<LinearLayout>.() -> Unit
-    ): VContainer<LinearLayout> {
-        val vContainer = object : VContainer<LinearLayout>(size) {
-            override fun createView(context: Context): LinearLayout = LinearLayout(context)
-        }
+    ): VLinear {
+        val vContainer = VLinear(size)
         vContainer.init()
         vContent = vContainer
         return vContainer
@@ -177,23 +178,15 @@ abstract class ModalElement<D : Dialog> : UiEntity<D>(),
     override fun vVertical(
             size: LayoutSize,
             init: VContainer<LinearLayout>.() -> Unit
-    ): VContainer<LinearLayout> {
-        val vContainer = object : VContainer<LinearLayout>(size) {
-            override fun createView(context: Context): LinearLayout =
-                    LinearLayout(context)
-                            .also { it.orientation = LinearLayout.VERTICAL }
-        }
+    ): VVertical {
+        val vContainer = VVertical(size)
         vContainer.init()
         vContent = vContainer
         return vContainer
     }
 
-    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VContainer<LinearLayout> {
-        val vContainer = object : VContainer<LinearLayout>(Air) {
-            override fun createView(context: Context): LinearLayout =
-                    LinearLayout(context)
-                            .also { it.orientation = LinearLayout.VERTICAL }
-        }
+    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VVertical {
+        val vContainer = VVertical(Earth)
         vContainer.init()
         vContent = vContainer
         return vContainer
@@ -221,9 +214,8 @@ abstract class ModalElement<D : Dialog> : UiEntity<D>(),
         return vImage
     }
 
-    override fun vImage(size: LayoutSize, url: String, init: VImage.() -> Unit): VImage {
+    override fun vImage(size: LayoutSize, init: VImage.() -> Unit): VImage {
         val vImage = VImage(size)
-        vImage.imageUrl = url
         vImage.init()
         vContent = vImage
         return vImage

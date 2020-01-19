@@ -10,6 +10,8 @@
 * VHorizontal and VVertical
 * VEditable
 * VTextField
+* Add guidlines and barriers to VConstraint
+* VPermission
 
 ### MAJOR TODO
 * Implement toolbar badges
@@ -20,6 +22,8 @@
 * Light and dark themes for views
 * VAutocomplete, VCheckbox, VRadio
 * VRecycler pagination
+* Get image and video from camera
+* Get image and video from gallery
 
 ### DONE
 * ~~Implement view sizes~~

@@ -59,4 +59,8 @@ dependencies {
     def glide_version = '4.10.0'
     implementation "com.github.bumptech.glide:glide:$glide_version"
     annotationProcessor "com.github.bumptech.glide:compiler:$glide_version"
+
+    def auto_value_version = '1.6.3'
+    compileOnly "com.google.auto.value:auto-value-annotations:${auto_value_version}"
+    annotationProcessor "com.google.auto.value:auto-value:${auto_value_version}"
 }

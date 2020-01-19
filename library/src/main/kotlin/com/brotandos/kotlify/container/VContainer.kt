@@ -13,15 +13,15 @@ import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.container.modal.VBottomSheetDialog
 import com.brotandos.kotlify.container.modal.VDialog
-import com.brotandos.kotlify.element.LayoutManager
 import com.brotandos.kotlify.element.ToggleOption
 import com.brotandos.kotlify.element.UiEntity
 import com.brotandos.kotlify.element.VImage
 import com.brotandos.kotlify.element.VLabel
-import com.brotandos.kotlify.element.VRecycler
 import com.brotandos.kotlify.element.VSimpleToggle
 import com.brotandos.kotlify.element.VToggleGroup
 import com.brotandos.kotlify.element.WidgetElement
+import com.brotandos.kotlify.element.list.LayoutManager
+import com.brotandos.kotlify.element.list.VRecycler
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
@@ -52,6 +52,8 @@ abstract class VContainer<V : ViewGroup>(
             ) as? View ?: throw RuntimeException("Generic type of widget must extend View")
             // TODO use custom exception
             view.addView(child)
+            uiEntity.actualWidth = view.width
+            uiEntity.actualHeight = view.height
         }
         onBuildFinished(view)
         return view
@@ -88,6 +90,7 @@ abstract class VContainer<V : ViewGroup>(
                 KotlifyInternals.initiateView(context, V::class.java)
         }
         vContainer.init()
+        `access$children` += vContainer
         return vContainer
     }
 
@@ -149,9 +152,9 @@ abstract class VContainer<V : ViewGroup>(
     }
 
     override fun vList(
-        size: LayoutSize,
-        items: BehaviorRelay<List<VRecycler.Item>>,
-        init: VRecycler.() -> Unit
+            size: LayoutSize,
+            items: BehaviorRelay<List<VRecycler.Item>>,
+            init: VRecycler.() -> Unit
     ): VRecycler {
         val vRecycler = VRecycler(
                 itemsRelay = items,
@@ -172,10 +175,8 @@ abstract class VContainer<V : ViewGroup>(
     override fun vLinear(
             size: LayoutSize,
             init: VContainer<LinearLayout>.() -> Unit
-    ): VContainer<LinearLayout> {
-        val vContainer = object : VContainer<LinearLayout>(size) {
-            override fun createView(context: Context): LinearLayout = LinearLayout(context)
-        }
+    ): VLinear {
+        val vContainer = VLinear(size)
         vContainer.init()
         children += vContainer
         return vContainer
@@ -184,23 +185,15 @@ abstract class VContainer<V : ViewGroup>(
     override fun vVertical(
             size: LayoutSize,
             init: VContainer<LinearLayout>.() -> Unit
-    ): VContainer<LinearLayout> {
-        val vContainer = object : VContainer<LinearLayout>(size) {
-            override fun createView(context: Context): LinearLayout =
-                LinearLayout(context)
-                    .also { it.orientation = LinearLayout.VERTICAL }
-        }
+    ): VVertical {
+        val vContainer = VVertical(size)
         vContainer.init()
         children += vContainer
         return vContainer
     }
 
-    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VContainer<LinearLayout> {
-        val vContainer = object : VContainer<LinearLayout>(Earth) {
-            override fun createView(context: Context): LinearLayout =
-                LinearLayout(context)
-                    .also { it.orientation = LinearLayout.VERTICAL }
-        }
+    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VVertical {
+        val vContainer = VVertical(size)
         vContainer.init()
         children += vContainer
         return vContainer
@@ -228,9 +221,8 @@ abstract class VContainer<V : ViewGroup>(
         return vImage
     }
 
-    override fun vImage(size: LayoutSize, url: String, init: VImage.() -> Unit): VImage {
+    override fun vImage(size: LayoutSize, init: VImage.() -> Unit): VImage {
         val vImage = VImage(size)
-        vImage.imageUrl = url
         vImage.init()
         children += vImage
         return vImage
@@ -287,4 +279,8 @@ abstract class VContainer<V : ViewGroup>(
         super.dispose()
         children.forEach(Disposable::dispose)
     }
+
+    @PublishedApi
+    internal val `access$children`: MutableList<UiEntity<*>>
+        get() = children
 }

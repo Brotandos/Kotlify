@@ -26,7 +26,9 @@ abstract class UiEntity<T> : Disposable {
             kotlifyContext: KotlifyContext
     ): T
 
-    protected val Context.density get() = resources.displayMetrics.density.toInt()
+    fun addToComposite(disposable: Disposable) {
+        disposables.add(disposable)
+    }
 
     override fun isDisposed(): Boolean = disposables.isDisposed
 

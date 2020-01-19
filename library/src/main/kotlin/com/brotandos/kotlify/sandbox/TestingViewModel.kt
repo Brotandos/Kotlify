@@ -15,7 +15,7 @@ import com.brotandos.kotlify.container.VContainer
 import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.container.root.VRootOwner
 import com.brotandos.kotlify.container.root.vRoot
-import com.brotandos.kotlify.element.VRecycler
+import com.brotandos.kotlify.element.list.VRecycler
 import com.jakewharton.rxrelay2.BehaviorRelay
 
 class TestingViewModel : ViewModel() {

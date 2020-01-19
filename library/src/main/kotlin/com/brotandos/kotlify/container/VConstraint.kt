@@ -149,6 +149,14 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
             constraintLayoutInits += { it.setVerticalBias(id, value) }
         }
 
+    fun WidgetElement<*>.packChainsHorizontally() {
+        constraintLayoutInits += { it.setHorizontalChainStyle(id, ConstraintSet.CHAIN_PACKED) }
+    }
+
+    fun WidgetElement<*>.packChainsVertically() {
+        constraintLayoutInits += { it.setVerticalChainStyle(id, ConstraintSet.CHAIN_PACKED) }
+    }
+
     var defaultWidth: Int
         get() = KotlifyInternals.noGetter()
         set(value) {

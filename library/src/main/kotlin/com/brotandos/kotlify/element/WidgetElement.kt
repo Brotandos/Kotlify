@@ -3,6 +3,7 @@ package com.brotandos.kotlify.element
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.os.Parcelable
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
@@ -26,6 +27,7 @@ private const val ID_KEY_SEPARATOR = "-"
  * TODO List:
  * - Classify properties: (e.g: vRootOwnerName and packageName to identifiers)
  * - Encapsulate relay properties using [KotlifyInternals.noGetter]
+ * - Find proper way to define width and height
  * */
 abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
@@ -49,13 +51,20 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     private var backgroundColors: Pair<Int, Int>? = null
 
-    private var activityToNavigateOnClick: Class<Activity>? = null
+    @PublishedApi
+    internal var activityToNavigateOnClick: Class<*>? = null
 
     var id = ID_NOT_SET
 
     var minWidth: CustomLength? = null
 
     var minHeight: CustomLength? = null
+
+    var actualWidth: Int? = null
+        internal set
+
+    var actualHeight: Int? = null
+        internal set
 
     // TODO implement
     // open var isInvisible: BehaviorRelay<Boolean>? = null
@@ -121,23 +130,22 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     @CallSuper
     protected open fun initSubscriptions(view: V?) {
-        view ?: return
         isDarkRelay
                 ?.observeOn(AndroidSchedulers.mainThread())
                 ?.subscribe {
                     val (light, dark) = backgroundColors ?: return@subscribe
-                    view.setBackgroundColor(if (it) dark else light)
+                    view?.setBackgroundColor(if (it) dark else light)
                 }
                 ?.untilLifecycleDestroy()
 
         isAppearedRelay
                 ?.observeOn(AndroidSchedulers.mainThread())
-                ?.subscribe { view.visibility = if (it) View.VISIBLE else View.GONE }
+                ?.subscribe { view?.visibility = if (it) View.VISIBLE else View.GONE }
                 ?.untilLifecycleDestroy()
 
         isEnabledRelay
                 ?.observeOn(AndroidSchedulers.mainThread())
-                ?.subscribe { view.isEnabled = it }
+                ?.subscribe { view?.isEnabled = it }
                 ?.untilLifecycleDestroy()
     }
 
@@ -147,6 +155,8 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         if (id != ID_NOT_SET) {
             view.id = id
         }
+        minWidth?.let { view.minimumWidth = it.getValue(density) }
+        minHeight?.let { view.minimumHeight = it.getValue(density) }
         val (width, height) = size.getValuePair(density)
         view.layoutParams = ViewGroup.LayoutParams(width, height)
         viewInit?.invoke(view)
@@ -164,8 +174,6 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
                 context.startActivity(intent)
             }
         }
-        minWidth?.let { view.minimumWidth = it.getValue(density) }
-        minHeight?.let { view.minimumHeight = it.getValue(density) }
         return view
     }
 
@@ -195,12 +203,19 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         }
     }
 
-    fun to(clazz: Class<Activity>) {
-        activityToNavigateOnClick = clazz
+    inline fun <reified T : Activity> to(vararg parcelables: Pair<String, Parcelable>) {
+
+        activityToNavigateOnClick = T::class.java
     }
+
+    protected val Context.density get() = resources.displayMetrics.density.toInt()
 
     object ThrottleClickProperties {
         const val TIMEOUT = 400L
         val timeUnit = TimeUnit.MILLISECONDS
     }
+
+    class NavigationTarget<T : Activity>(
+            val parcelables: Map<String, Parcelable>
+    )
 }

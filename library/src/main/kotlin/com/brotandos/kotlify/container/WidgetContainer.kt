@@ -8,7 +8,6 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.StringRes
-import androidx.cardview.widget.CardView
 import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.CustomSize
 import com.brotandos.kotlify.common.LayoutSize
@@ -16,11 +15,10 @@ import com.brotandos.kotlify.common.MatchParent
 import com.brotandos.kotlify.element.ToggleOption
 import com.brotandos.kotlify.element.VImage
 import com.brotandos.kotlify.element.VLabel
-import com.brotandos.kotlify.element.VRecycler
+import com.brotandos.kotlify.element.list.VRecycler
 import com.brotandos.kotlify.element.VSimpleToggle
 import com.brotandos.kotlify.element.VToggleGroup
 import com.jakewharton.rxrelay2.BehaviorRelay
-import io.reactivex.disposables.Disposable
 
 interface WidgetContainer {
 
@@ -80,9 +78,9 @@ interface WidgetContainer {
     ): VLabel
 
     fun vList(
-        size: LayoutSize,
-        items: BehaviorRelay<List<VRecycler.Item>>,
-        init: VRecycler.() -> Unit
+            size: LayoutSize,
+            items: BehaviorRelay<List<VRecycler.Item>>,
+            init: VRecycler.() -> Unit
     ): VRecycler
 
     fun vGrid(
@@ -94,14 +92,14 @@ interface WidgetContainer {
     fun vLinear(
             size: LayoutSize,
             init: VContainer<LinearLayout>.() -> Unit
-    ): VContainer<LinearLayout>
+    ): VLinear
 
     fun vVertical(
         size: LayoutSize,
         init: VContainer<LinearLayout>.() -> Unit
-    ): VContainer<LinearLayout>
+    ): VVertical
 
-    fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VContainer<LinearLayout>
+    fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VVertical
 
     fun vCard(size: LayoutSize, init: VCard.() -> Unit): VCard
 
@@ -109,7 +107,7 @@ interface WidgetContainer {
 
     fun vImage(size: LayoutSize, resId: Int, init: VImage.() -> Unit): VImage
 
-    fun vImage(size: LayoutSize, url: String, init: VImage.() -> Unit): VImage
+    fun vImage(size: LayoutSize, init: VImage.() -> Unit): VImage
 
     fun <T : ToggleOption> vToggleGroup(
             size: LayoutSize,
