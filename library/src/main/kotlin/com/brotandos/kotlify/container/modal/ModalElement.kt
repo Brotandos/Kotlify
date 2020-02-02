@@ -80,170 +80,25 @@ abstract class ModalElement<D : Dialog> : UiEntity<D>(),
         return vElement
     }
 
-    inline fun <reified V : ViewGroup> vContainer(init: VContainer<V>.() -> Unit): VContainer<V> {
-        val vContainer = object : VContainer<V>(Air) {
+    inline fun <reified V : ViewGroup, reified LP : ViewGroup.LayoutParams> vContainer(
+            init: VContainer<V, LP>.() -> Unit
+    ): VContainer<V, LP> {
+        val vContainer = object : VContainer<V, LP>(Air) {
             override fun createView(context: Context): V =
                     KotlifyInternals.initiateView(context, V::class.java)
+
+            override fun getChildLayoutParams(width: Int, height: Int): LP {
+                val constructor = LP::class.java.getConstructor(width::class.java, height::class.java)
+                return constructor.newInstance(width, height)
+            }
         }
         vContainer.init()
         vContent = vContainer
         return vContainer
     }
 
-    override fun vToolbar(size: LayoutSize, init: VToolbar.() -> Unit): VToolbar {
-        val vToolbar = VToolbar(size)
-        vToolbar.init()
-        vContent = vToolbar
-        return vToolbar
-    }
-
-    override fun vLabel(size: LayoutSize, init: VLabel.() -> Unit): VLabel {
-        val vLabel = VLabel(size)
-        vLabel.init()
-        vContent = vLabel
-        return vLabel
-    }
-
-    override fun vLabel(
-            size: LayoutSize,
-            vararg styles: TextView.() -> Unit,
-            init: VLabel.() -> Unit
-    ): VLabel {
-        val vLabel = VLabel(size)
-        vLabel.styles = arrayOf(*styles)
-        vLabel.init()
-        vContent = vLabel
-        return vLabel
-    }
-
-    override fun vLabel(
-            size: LayoutSize,
-            @StringRes textResId: Int,
-            vararg styles: TextView.() -> Unit,
-            init: VLabel.() -> Unit
-    ): VLabel {
-        val vLabel = VLabel(size)
-        vLabel.textResId = textResId
-        vLabel.styles = arrayOf(*styles)
-        vLabel.init()
-        vContent = vLabel
-        return vLabel
-    }
-
-    override fun vLabel(
-            size: LayoutSize,
-            text: String,
-            vararg styles: TextView.() -> Unit,
-            init: VLabel.() -> Unit
-    ): VLabel {
-        val vLabel = VLabel(size)
-        vLabel.text = text
-        vLabel.styles = arrayOf(*styles)
-        vLabel.init()
-        vContent = vLabel
-        return vLabel
-    }
-
-    override fun vList(
-            size: LayoutSize,
-            items: BehaviorRelay<List<VRecycler.Item>>,
-            init: VRecycler.() -> Unit
-    ): VRecycler {
-        val vRecycler = VRecycler(
-                itemsRelay = items,
-                layoutManager = LayoutManager.Linear,
-                size = size
-        )
-        vRecycler.init()
-        vContent = vRecycler
-        return vRecycler
-    }
-
-    override fun vGrid(
-            size: LayoutSize,
-            items: BehaviorRelay<List<VRecycler.Item>>,
-            init: VRecycler.() -> Unit
-    ): VRecycler = TODO("not implemented")
-
-    override fun vLinear(
-            size: LayoutSize,
-            init: VContainer<LinearLayout>.() -> Unit
-    ): VLinear {
-        val vContainer = VLinear(size)
-        vContainer.init()
-        vContent = vContainer
-        return vContainer
-    }
-
-    override fun vVertical(
-            size: LayoutSize,
-            init: VContainer<LinearLayout>.() -> Unit
-    ): VVertical {
-        val vContainer = VVertical(size)
-        vContainer.init()
-        vContent = vContainer
-        return vContainer
-    }
-
-    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VVertical {
-        val vContainer = VVertical(Earth)
-        vContainer.init()
-        vContent = vContainer
-        return vContainer
-    }
-
-    override fun vCard(size: LayoutSize, init: VCard.() -> Unit): VCard {
-        val vCard = VCard(size)
-        vCard.init()
-        vContent = vCard
-        return vCard
-    }
-
-    override fun vConstraint(size: LayoutSize, init: VConstraint.() -> Unit): VConstraint {
-        val vConstraint = VConstraint(size)
-        vConstraint.init()
-        vContent = vConstraint
-        return vConstraint
-    }
-
-    override fun vImage(size: LayoutSize, resId: Int, init: VImage.() -> Unit): VImage {
-        val vImage = VImage(size)
-        vImage.imageResId = BehaviorRelay.createDefault(resId)
-        vImage.init()
-        vContent = vImage
-        return vImage
-    }
-
-    override fun vImage(size: LayoutSize, init: VImage.() -> Unit): VImage {
-        val vImage = VImage(size)
-        vImage.init()
-        vContent = vImage
-        return vImage
-    }
-
-    override fun <T : ToggleOption> vToggleGroup(
-            size: LayoutSize,
-            selectedOption: BehaviorRelay<T>,
-            init: VToggleGroup<T>.() -> Unit
-    ): VToggleGroup<T> {
-        val vToggleGroup = VToggleGroup<T>(size)
-        vToggleGroup.selectedOption = selectedOption
-        vToggleGroup.init()
-        vContent = vToggleGroup
-        return vToggleGroup
-    }
-
-    override fun <T : ToggleOption> T.vSimpleToggle(
-            size: LayoutSize,
-            selectedOption: BehaviorRelay<T>,
-            init: VSimpleToggle<T>.() -> Unit
-    ): VSimpleToggle<T> {
-        val vSimpleToggle = VSimpleToggle<T>(size)
-        vSimpleToggle.model = this
-        vSimpleToggle.selectedOption = selectedOption
-        vSimpleToggle.init()
-        vContent = vSimpleToggle
-        return vSimpleToggle
+    override fun accept(widget: WidgetElement<*>) {
+        vContent = widget
     }
 
     override fun dispose() {

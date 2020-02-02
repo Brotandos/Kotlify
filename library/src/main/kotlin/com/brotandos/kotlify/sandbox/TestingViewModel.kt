@@ -9,9 +9,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.brotandos.kotlify.R
+import com.brotandos.kotlify.common.Air
 import com.brotandos.kotlify.common.Water
 import com.brotandos.kotlify.common.toggleValue
 import com.brotandos.kotlify.container.VContainer
+import com.brotandos.kotlify.container.VLinear
 import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.container.root.VRootOwner
 import com.brotandos.kotlify.container.root.vRoot
@@ -39,7 +41,7 @@ class TestingViewModel : ViewModel() {
     private lateinit var vRoot: VRoot<*>
 
     fun markup(activity: AppCompatActivity) {
-        vRoot = activity.vRoot<VContainer<LinearLayout>>(activity, activity as VRootOwner) {
+        vRoot = activity.vRoot<VLinear>(activity, activity as VRootOwner) {
             isDark(isDark, 0xFFEEEEEE.toInt(), 0xFF222222.toInt())
             initView {
                 orientation = LinearLayout.VERTICAL
@@ -63,7 +65,7 @@ class TestingViewModel : ViewModel() {
 
             vCustom<Button>(200.dp x 200.dp) {
                 id = R.id.bottom_sheet_dialog_trigger
-                initLayout<LinearLayout.LayoutParams> { gravity = Gravity.START }
+                lparams { gravity = Gravity.START }
                 initView {
                     text = "Show bottom sheet"
                     setOnClickListener {
@@ -76,8 +78,7 @@ class TestingViewModel : ViewModel() {
             vCustom<TextView> {
                 id = R.id.hello_world_text_view
                 isAppeared = isTextVisible
-
-                initLayout<LinearLayout.LayoutParams> { gravity = Gravity.CENTER_HORIZONTAL }
+                lparams { gravity = Gravity.CENTER_HORIZONTAL }
                 initView {
                     text = "Hello, World!"
                     setTextColor(0xFFFF0000.toInt())
@@ -90,7 +91,7 @@ class TestingViewModel : ViewModel() {
                     vCustom<TextView> {
                         initView {
                             setTextColor(Color.RED)
-                            text = it.toString()
+                            text = it.value.toString()
                         }
                     }
                 }
@@ -98,7 +99,7 @@ class TestingViewModel : ViewModel() {
                     vCustom<TextView> {
                         initView {
                             setTextColor(Color.BLUE)
-                            text = it.toString()
+                            text = it.value
                         }
                     }
                 }
@@ -108,7 +109,7 @@ class TestingViewModel : ViewModel() {
                 isAppeared = isDialog
                 title = "Hello, World!"
 
-                vContainer<LinearLayout> {
+                vVertical(Air) {
                     initView { orientation = LinearLayout.VERTICAL }
                     vCustom<Button>()
                     vCustom<Button>()
@@ -119,7 +120,7 @@ class TestingViewModel : ViewModel() {
                 isAppeared = isBottomDialog
                 title = "Hello, World!"
 
-                vContainer<LinearLayout> {
+                vVertical(Air) {
                     initView { orientation = LinearLayout.VERTICAL }
                     vCustom<Button> {
                         clickRelay.subscribe { isBottomDialog.accept(false) }

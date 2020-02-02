@@ -110,6 +110,7 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
     @PublishedApi
     internal var layoutInit: (V.() -> Unit)? = null
 
+    @Deprecated("Use lparams of VContainer instead")
     inline fun <reified T : ViewGroup.LayoutParams> initLayout(crossinline init: T.() -> Unit) {
         layoutInit = {
             val constructor = T::class.java.getConstructor(width::class.java, height::class.java)

@@ -18,6 +18,8 @@ import com.brotandos.kotlify.element.VLabel
 import com.brotandos.kotlify.element.list.VRecycler
 import com.brotandos.kotlify.element.VSimpleToggle
 import com.brotandos.kotlify.element.VToggleGroup
+import com.brotandos.kotlify.element.WidgetElement
+import com.brotandos.kotlify.element.list.LayoutManager
 import com.jakewharton.rxrelay2.BehaviorRelay
 
 interface WidgetContainer {
@@ -50,76 +52,159 @@ interface WidgetContainer {
             return height.dp.water
         }
 
-    fun vToolbar(
-            size: LayoutSize = 50.dp.water,
-            init: VToolbar.() -> Unit
-    ): VToolbar
+    fun accept(widget: WidgetElement<*>)
 
-    fun vLabel(size: LayoutSize, init: VLabel.() -> Unit): VLabel
+    fun vToolbar(
+            size: LayoutSize,
+            init: VToolbar.() -> Unit
+    ): VToolbar {
+        val vToolbar = VToolbar(size)
+        vToolbar.init()
+        accept(vToolbar)
+        return vToolbar
+    }
+
+    fun vLabel(size: LayoutSize, init: VLabel.() -> Unit): VLabel {
+        val vLabel = VLabel(size)
+        vLabel.init()
+        accept(vLabel)
+        return vLabel
+    }
+
+    fun vLabel(
+            size: LayoutSize,
+            vararg styles: TextView.() -> Unit,
+            init: VLabel.() -> Unit
+    ): VLabel {
+        val vLabel = VLabel(size)
+        vLabel.styles = arrayOf(*styles)
+        vLabel.init()
+        accept(vLabel)
+        return vLabel
+    }
 
     fun vLabel(
             size: LayoutSize,
             @StringRes textResId: Int,
             vararg styles: TextView.() -> Unit,
             init: VLabel.() -> Unit
-    ): VLabel
+    ): VLabel {
+        val vLabel = VLabel(size)
+        vLabel.textResId = textResId
+        vLabel.styles = arrayOf(*styles)
+        vLabel.init()
+        accept(vLabel)
+        return vLabel
+    }
 
     fun vLabel(
             size: LayoutSize,
             text: String,
             vararg styles: TextView.() -> Unit,
             init: VLabel.() -> Unit
-    ): VLabel
-
-    fun vLabel(
-            size: LayoutSize,
-            vararg styles: TextView.() -> Unit,
-            init: VLabel.() -> Unit
-    ): VLabel
+    ): VLabel {
+        val vLabel = VLabel(size)
+        vLabel.text = text
+        vLabel.styles = arrayOf(*styles)
+        vLabel.init()
+        accept(vLabel)
+        return vLabel
+    }
 
     fun vList(
             size: LayoutSize,
             items: BehaviorRelay<List<VRecycler.Item>>,
             init: VRecycler.() -> Unit
-    ): VRecycler
+    ): VRecycler {
+        val vRecycler = VRecycler(
+                itemsRelay = items,
+                layoutManager = LayoutManager.Linear,
+                size = size
+        )
+        vRecycler.init()
+        accept(vRecycler)
+        return vRecycler
+    }
 
     fun vGrid(
             size: LayoutSize,
             items: BehaviorRelay<List<VRecycler.Item>>,
             init: VRecycler.() -> Unit
-    ): VRecycler
+    ): VRecycler = TODO("not implemented")
 
     fun vLinear(
             size: LayoutSize,
-            init: VContainer<LinearLayout>.() -> Unit
-    ): VLinear
+            init: VContainer<LinearLayout, LinearLayout.LayoutParams>.() -> Unit
+    ): VLinear {
+        val vContainer = VLinear(size)
+        vContainer.init()
+        accept(vContainer)
+        return vContainer
+    }
 
     fun vVertical(
-        size: LayoutSize,
-        init: VContainer<LinearLayout>.() -> Unit
-    ): VVertical
+            size: LayoutSize,
+            init: VContainer<LinearLayout, LinearLayout.LayoutParams>.() -> Unit
+    ): VVertical {
+        val vContainer = VVertical(size)
+        vContainer.init()
+        accept(vContainer)
+        return vContainer
+    }
 
-    fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VVertical
+    fun vCard(size: LayoutSize, init: VCard.() -> Unit): VCard {
+        val vCard = VCard(size)
+        vCard.init()
+        accept(vCard)
+        return vCard
+    }
 
-    fun vCard(size: LayoutSize, init: VCard.() -> Unit): VCard
+    fun vConstraint(size: LayoutSize, init: VConstraint.() -> Unit): VConstraint {
+        val vConstraint = VConstraint(size)
+        vConstraint.init()
+        accept(vConstraint)
+        return vConstraint
+    }
 
-    fun vConstraint(size: LayoutSize, init: VConstraint.() -> Unit): VConstraint
+    fun vImage(size: LayoutSize, resId: Int, init: VImage.() -> Unit): VImage {
+        val vImage = VImage(size)
+        vImage.imageResId = BehaviorRelay.createDefault(resId)
+        vImage.init()
+        accept(vImage)
+        return vImage
+    }
 
-    fun vImage(size: LayoutSize, resId: Int, init: VImage.() -> Unit): VImage
-
-    fun vImage(size: LayoutSize, init: VImage.() -> Unit): VImage
+    fun vImage(size: LayoutSize, init: VImage.() -> Unit): VImage {
+        val vImage = VImage(size)
+        vImage.init()
+        accept(vImage)
+        return vImage
+    }
 
     fun <T : ToggleOption> vToggleGroup(
             size: LayoutSize,
             selectedOption: BehaviorRelay<T>,
             init: VToggleGroup<T>.() -> Unit
-    ): VToggleGroup<T>
+    ): VToggleGroup<T> {
+        val vToggleGroup = VToggleGroup<T>(size)
+        vToggleGroup.selectedOption = selectedOption
+        vToggleGroup.init()
+        accept(vToggleGroup)
+        return vToggleGroup
+    }
 
     fun <T : ToggleOption> T.vSimpleToggle(
             size: LayoutSize,
             selectedOption: BehaviorRelay<T>,
             init: VSimpleToggle<T>.() -> Unit
-    ): VSimpleToggle<T>
+    ): VSimpleToggle<T> {
+        val vSimpleToggle = VSimpleToggle<T>(size)
+        vSimpleToggle.model = this
+        vSimpleToggle.selectedOption = selectedOption
+        vSimpleToggle.init()
+        accept(vSimpleToggle)
+        return vSimpleToggle
+    }
 
     // VLabel styles
     val textCenter: TextView.() -> Unit

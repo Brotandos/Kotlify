@@ -24,6 +24,8 @@
 * VRecycler pagination
 * Get image and video from camera
 * Get image and video from gallery
+* Splash screen with permissions requirement
+* Find way to not pass LayoutParams to generic of VContainer
 
 ### DONE
 * ~~Implement view sizes~~

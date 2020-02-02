@@ -1,10 +1,11 @@
 package com.brotandos.kotlify.container
 
 import android.content.Context
+import android.widget.FrameLayout
 import androidx.cardview.widget.CardView
 import com.brotandos.kotlify.common.LayoutSize
 
-class VCard(size: LayoutSize) : VContainer<CardView>(size) {
+class VCard(size: LayoutSize) : VContainer<CardView, FrameLayout.LayoutParams>(size) {
 
     var radius: Float? = null
 
@@ -13,4 +14,7 @@ class VCard(size: LayoutSize) : VContainer<CardView>(size) {
         radius?.let(view::setRadius)
         return view
     }
+
+    override fun getChildLayoutParams(width: Int, height: Int): FrameLayout.LayoutParams =
+            FrameLayout.LayoutParams(width, height)
 }

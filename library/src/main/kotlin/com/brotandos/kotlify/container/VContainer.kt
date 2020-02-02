@@ -4,33 +4,21 @@ import android.content.Context
 import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.annotation.StringRes
 import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.container.modal.VBottomSheetDialog
 import com.brotandos.kotlify.container.modal.VDialog
-import com.brotandos.kotlify.element.ToggleOption
 import com.brotandos.kotlify.element.UiEntity
-import com.brotandos.kotlify.element.VImage
-import com.brotandos.kotlify.element.VLabel
-import com.brotandos.kotlify.element.VSimpleToggle
-import com.brotandos.kotlify.element.VToggleGroup
 import com.brotandos.kotlify.element.WidgetElement
-import com.brotandos.kotlify.element.list.LayoutManager
-import com.brotandos.kotlify.element.list.VRecycler
-import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.Disposable
 
-abstract class VContainer<V : ViewGroup>(
+abstract class VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
     size: LayoutSize
 ) : WidgetElement<V>(size), WidgetContainer {
 
     protected val children = mutableListOf<UiEntity<*>>()
-    fun add(uiEntity: UiEntity<*>) = children.add(uiEntity)
 
     // TODO find way to inject it
     private var getDisplayMetrics: (() -> DisplayMetrics)? = null
@@ -38,6 +26,16 @@ abstract class VContainer<V : ViewGroup>(
     override fun build(context: Context, kotlifyContext: KotlifyContext): V {
         getDisplayMetrics = { context.resources.displayMetrics }
         val view = super.build(context, kotlifyContext)
+        buildChildren(view, kotlifyContext)
+        onBuildFinished(view)
+        return view
+    }
+
+    private fun buildChildren(
+            viewGroup: ViewGroup,
+            kotlifyContext: KotlifyContext
+    ) {
+        val context = viewGroup.context
         children.forEachIndexed { index, uiEntity ->
             if (uiEntity !is WidgetElement) {
                 uiEntity.build(context, kotlifyContext)
@@ -51,13 +49,23 @@ abstract class VContainer<V : ViewGroup>(
                     path + index
             ) as? View ?: throw RuntimeException("Generic type of widget must extend View")
             // TODO use custom exception
-            view.addView(child)
-            uiEntity.actualWidth = view.width
-            uiEntity.actualHeight = view.height
+            viewGroup.addView(child)
+            uiEntity.actualWidth = child.width
+            uiEntity.actualHeight = child.height
         }
-        onBuildFinished(view)
-        return view
     }
+
+    fun WidgetElement<*>.lparams(init: LP.() -> Unit) {
+        this.layoutInit = {
+            val density = context.resources.displayMetrics.density.toInt()
+            val (widgetWidth, widgetHeight) = size.getValuePair(density)
+            val instance = getChildLayoutParams(widgetWidth, widgetHeight)
+            instance.init()
+            layoutParams = instance
+        }
+    }
+
+    abstract fun getChildLayoutParams(width: Int, height: Int): LP
 
     inline fun <reified V : View> vCustom(
         size: LayoutSize = Earth,
@@ -68,7 +76,7 @@ abstract class VContainer<V : ViewGroup>(
                 KotlifyInternals.initiateView(context, V::class.java)
         }
         vElement.init()
-        add(vElement)
+        inlineChildren += vElement
         return vElement
     }
 
@@ -77,194 +85,44 @@ abstract class VContainer<V : ViewGroup>(
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
         }
-        add(vElement)
+        inlineChildren += vElement
         return vElement
     }
 
-    inline fun <reified V : ViewGroup> vContainer(
-        size: LayoutSize,
-        init: VContainer<V>.() -> Unit
-    ): VContainer<V> {
-        val vContainer = object : VContainer<V>(size) {
+    inline fun <reified V : ViewGroup, reified LP : ViewGroup.LayoutParams> vContainer(
+            size: LayoutSize,
+            init: VContainer<V, LP>.() -> Unit
+    ): VContainer<V, LP> {
+        val vContainer = object : VContainer<V, LP>(size) {
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
+
+            override fun getChildLayoutParams(width: Int, height: Int): LP {
+                val constructor = LP::class.java.getConstructor(width::class.java, height::class.java)
+                return constructor.newInstance(width, height)
+            }
         }
         vContainer.init()
-        `access$children` += vContainer
+        inlineChildren += vContainer
         return vContainer
     }
 
-    override fun vToolbar(
-            size: LayoutSize,
-            init: VToolbar.() -> Unit
-    ): VToolbar {
-        val vToolbar = VToolbar(size)
-        vToolbar.init()
-        children += vToolbar
-        return vToolbar
-    }
-
-    override fun vLabel(size: LayoutSize, init: VLabel.() -> Unit): VLabel {
-        val vLabel = VLabel(size)
-        vLabel.init()
-        children += vLabel
-        return vLabel
-    }
-
-    override fun vLabel(
-            size: LayoutSize,
-            vararg styles: TextView.() -> Unit,
-            init: VLabel.() -> Unit
-    ): VLabel {
-        val vLabel = VLabel(size)
-        vLabel.styles = arrayOf(*styles)
-        vLabel.init()
-        children += vLabel
-        return vLabel
-    }
-
-    override fun vLabel(
-            size: LayoutSize,
-            @StringRes textResId: Int,
-            vararg styles: TextView.() -> Unit,
-            init: VLabel.() -> Unit
-    ): VLabel {
-        val vLabel = VLabel(size)
-        vLabel.textResId = textResId
-        vLabel.styles = arrayOf(*styles)
-        vLabel.init()
-        children += vLabel
-        return vLabel
-    }
-
-    override fun vLabel(
-            size: LayoutSize,
-            text: String,
-            vararg styles: TextView.() -> Unit,
-            init: VLabel.() -> Unit
-    ): VLabel {
-        val vLabel = VLabel(size)
-        vLabel.text = text
-        vLabel.styles = arrayOf(*styles)
-        vLabel.init()
-        children += vLabel
-        return vLabel
-    }
-
-    override fun vList(
-            size: LayoutSize,
-            items: BehaviorRelay<List<VRecycler.Item>>,
-            init: VRecycler.() -> Unit
-    ): VRecycler {
-        val vRecycler = VRecycler(
-                itemsRelay = items,
-                layoutManager = LayoutManager.Linear,
-                size = size
-        )
-        vRecycler.init()
-        children += vRecycler
-        return vRecycler
-    }
-
-    override fun vGrid(
-            size: LayoutSize,
-            items: BehaviorRelay<List<VRecycler.Item>>,
-            init: VRecycler.() -> Unit
-    ): VRecycler = TODO("not implemented")
-
-    override fun vLinear(
-            size: LayoutSize,
-            init: VContainer<LinearLayout>.() -> Unit
-    ): VLinear {
-        val vContainer = VLinear(size)
-        vContainer.init()
-        children += vContainer
-        return vContainer
-    }
-
-    override fun vVertical(
-            size: LayoutSize,
-            init: VContainer<LinearLayout>.() -> Unit
-    ): VVertical {
-        val vContainer = VVertical(size)
-        vContainer.init()
-        children += vContainer
-        return vContainer
-    }
-
-    override fun vVertical(init: VContainer<LinearLayout>.() -> Unit): VVertical {
-        val vContainer = VVertical(size)
-        vContainer.init()
-        children += vContainer
-        return vContainer
-    }
-
-    override fun vCard(size: LayoutSize, init: VCard.() -> Unit): VCard {
-        val vCard = VCard(size)
-        vCard.init()
-        children += vCard
-        return vCard
-    }
-
-    override fun vConstraint(size: LayoutSize, init: VConstraint.() -> Unit): VConstraint {
-        val vConstraint = VConstraint(size)
-        vConstraint.init()
-        children += vConstraint
-        return vConstraint
-    }
-
-    override fun vImage(size: LayoutSize, resId: Int, init: VImage.() -> Unit): VImage {
-        val vImage = VImage(size)
-        vImage.imageResId = BehaviorRelay.createDefault(resId)
-        vImage.init()
-        children += vImage
-        return vImage
-    }
-
-    override fun vImage(size: LayoutSize, init: VImage.() -> Unit): VImage {
-        val vImage = VImage(size)
-        vImage.init()
-        children += vImage
-        return vImage
-    }
-
-    override fun <T : ToggleOption> vToggleGroup(
-            size: LayoutSize,
-            selectedOption: BehaviorRelay<T>,
-            init: VToggleGroup<T>.() -> Unit
-    ): VToggleGroup<T> {
-        val vToggleGroup = VToggleGroup<T>(size)
-        vToggleGroup.selectedOption = selectedOption
-        vToggleGroup.init()
-        children += vToggleGroup
-        return vToggleGroup
-    }
-
-    override fun <T : ToggleOption> T.vSimpleToggle(
-            size: LayoutSize,
-            selectedOption: BehaviorRelay<T>,
-            init: VSimpleToggle<T>.() -> Unit
-    ): VSimpleToggle<T> {
-        val vSimpleToggle = VSimpleToggle<T>(size)
-        vSimpleToggle.model = this
-        vSimpleToggle.selectedOption = selectedOption
-        vSimpleToggle.init()
-        children += vSimpleToggle
-        return vSimpleToggle
+    override fun accept(widget: WidgetElement<*>) {
+        children += widget
     }
 
     @Throws(RuntimeException::class)
     fun vDialog(init: VDialog.() -> Unit): Disposable {
         val vDialog = VDialog()
         vDialog.init()
-        add(vDialog)
+        children.add(vDialog)
         return vDialog
     }
 
     fun vBottomSheetDialog(init: VBottomSheetDialog.() -> Unit): Disposable {
         val vBottomSheetDialog = VBottomSheetDialog()
         vBottomSheetDialog.init()
-        add(vBottomSheetDialog)
+        children.add(vBottomSheetDialog)
         return vBottomSheetDialog
     }
 
@@ -280,7 +138,11 @@ abstract class VContainer<V : ViewGroup>(
         children.forEach(Disposable::dispose)
     }
 
+    @Suppress("unused")
+    /**
+     * Used inside [vContainer] function
+     * */
     @PublishedApi
-    internal val `access$children`: MutableList<UiEntity<*>>
+    internal val inlineChildren: MutableList<UiEntity<*>>
         get() = children
 }

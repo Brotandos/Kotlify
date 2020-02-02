@@ -24,7 +24,7 @@ import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 
-class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
+class VToolbar(size: LayoutSize) : VContainer<Toolbar, Toolbar.LayoutParams>(size) {
 
     private val menuItems = mutableListOf<VMenu>()
 
@@ -97,6 +97,9 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar>(size) {
         }
         return toolbar
     }
+
+    override fun getChildLayoutParams(width: Int, height: Int): Toolbar.LayoutParams =
+            Toolbar.LayoutParams(width, height)
 
     fun setTitle(titleRes: Int) {
         titleResId?.accept(titleRes) ?: let {

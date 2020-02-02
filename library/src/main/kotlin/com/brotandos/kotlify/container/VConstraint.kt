@@ -28,7 +28,7 @@ typealias ConstraintMap = MutableMap<
         MutableMap<ConstraintSide, () -> ConstraintTarget>
 >
 
-class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
+class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout, ConstraintLayout.LayoutParams>(size) {
 
     private val constraints: ConstraintMap = mutableMapOf()
 
@@ -78,6 +78,9 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout>(size) {
         constraintLayoutInits.forEach { it.invoke(constraintSet) }
         constraintSet.applyTo(constraintLayout)
     }
+
+    override fun getChildLayoutParams(width: Int, height: Int): ConstraintLayout.LayoutParams =
+            ConstraintLayout.LayoutParams(width, height)
 
     private fun identifyWidgets(
             sharedPreferences: SharedPreferences,

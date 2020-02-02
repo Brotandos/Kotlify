@@ -139,10 +139,13 @@ class VRecycler(
     }
 
     inline fun <reified E : Item> vItem(
-            crossinline itemView: VContainer<*>.(E) -> WidgetElement<*>
+            crossinline itemView: VContainer<*, *>.(E) -> WidgetElement<*>
     ) {
-        val vContainer = object : VContainer<FrameLayout>(Air) {
+        val vContainer = object : VContainer<FrameLayout, FrameLayout.LayoutParams>(Air) {
             override fun createView(context: Context): FrameLayout = FrameLayout(context)
+
+            override fun getChildLayoutParams(width: Int, height: Int): FrameLayout.LayoutParams =
+                    FrameLayout.LayoutParams(width, height)
         }
         itemsMarkupMap[E::class] = {
             vContainer.itemView(it as E)

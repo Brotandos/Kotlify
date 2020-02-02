@@ -9,7 +9,7 @@ import com.brotandos.kotlify.common.KotlifyLifecycleObserver
 import com.brotandos.kotlify.container.VContainer
 import io.reactivex.disposables.Disposable
 
-class VRoot<T : VContainer<*>>(
+class VRoot<T : VContainer<*, *>>(
         private val vContainer: T
 ) {
 
@@ -33,7 +33,7 @@ class VRoot<T : VContainer<*>>(
     fun addToComposite(disposable: Disposable) = vContainer.addToComposite(disposable)
 }
 
-inline fun <reified T : VContainer<*>> Activity.vRoot(
+inline fun <reified T : VContainer<*, *>> Activity.vRoot(
         init: T.() -> Unit
 ): VRoot<T> {
     val vContainer = KotlifyInternals.initiateWidgetContainer(Air, T::class.java)
@@ -44,7 +44,7 @@ inline fun <reified T : VContainer<*>> Activity.vRoot(
     return vRoot
 }
 
-inline fun <reified T : VContainer<*>> Activity.vRoot(
+inline fun <reified T : VContainer<*, *>> Activity.vRoot(
         lifecycleOwner: LifecycleOwner,
         vRootOwner: VRootOwner,
         init: T.() -> Unit
