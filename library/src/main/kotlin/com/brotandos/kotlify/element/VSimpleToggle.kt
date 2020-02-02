@@ -1,14 +1,13 @@
 package com.brotandos.kotlify.element
 
-import android.content.Context
 import android.widget.ToggleButton
 import com.brotandos.kotlify.common.LayoutSize
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
 
-class VSimpleToggle<T : ToggleOption>(
+abstract class VSimpleToggle<T : ToggleOption, V : ToggleButton>(
         size: LayoutSize
-) : WidgetElement<ToggleButton>(size) {
+) : WidgetElement<V>(size) {
 
     var selectedOption: BehaviorRelay<T>? = null
 
@@ -16,24 +15,25 @@ class VSimpleToggle<T : ToggleOption>(
 
     var model: T? = null
 
-    override fun createView(context: Context): ToggleButton {
-        val button = ToggleButton(context)
+    override fun initStyles(view: V?) {
+        super.initStyles(view)
+        view ?: return
         model?.name?.let {
-            button.textOff = it
-            button.textOn = it
+            view.textOff = it
+            view.textOn = it
         }
-        button.setOnCheckedChangeListener { _, isChecked ->
-            if (isCheckedRelay?.value == isChecked) return@setOnCheckedChangeListener button.setChecked(true)
+        view.setOnCheckedChangeListener { _, isChecked ->
+            if (isCheckedRelay?.value == isChecked)
+                return@setOnCheckedChangeListener view.setChecked(true)
 
             if (isChecked) {
                 selectedOption?.accept(model)
             }
             isCheckedRelay?.accept(isChecked)
         }
-        return button
     }
 
-    override fun initSubscriptions(view: ToggleButton?) {
+    override fun initSubscriptions(view: V?) {
         super.initSubscriptions(view)
         selectedOption
                 ?.distinctUntilChanged()

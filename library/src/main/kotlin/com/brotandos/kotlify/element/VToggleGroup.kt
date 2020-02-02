@@ -15,7 +15,7 @@ class VToggleGroup<T : ToggleOption>(
         size: LayoutSize
 ) : WidgetElement<MaterialButtonToggleGroup>(size) {
 
-    val children = mutableListOf<Pair<T, VButton>>()
+    val children = mutableListOf<Pair<T, VButton<MaterialButton>>>()
 
     var selectedOption: BehaviorRelay<T>? = null
 
@@ -54,9 +54,11 @@ class VToggleGroup<T : ToggleOption>(
 
     fun T.vToggle(
             size: LayoutSize,
-            init: VButton.() -> Unit
-    ): VButton {
-        val vToggle = VButton(size).also(init)
+            init: VButton<MaterialButton>.() -> Unit
+    ): VButton<MaterialButton> {
+        val vToggle = object : VButton<MaterialButton>(size) {
+            override fun createView(context: Context): MaterialButton = MaterialButton(context)
+        }.also(init)
         disposables.add(vToggle)
         children += this to vToggle
         return vToggle

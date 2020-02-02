@@ -5,9 +5,16 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.Gravity
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.TextView
+import android.widget.ToggleButton
 import androidx.annotation.StringRes
+import androidx.appcompat.widget.Toolbar
+import androidx.cardview.widget.CardView
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.CustomSize
 import com.brotandos.kotlify.common.LayoutSize
@@ -56,16 +63,24 @@ interface WidgetContainer {
 
     fun vToolbar(
             size: LayoutSize,
-            init: VToolbar.() -> Unit
-    ): VToolbar {
-        val vToolbar = VToolbar(size)
+            init: VToolbar<Toolbar, Toolbar.LayoutParams>.() -> Unit
+    ): VToolbar<Toolbar, Toolbar.LayoutParams> {
+        val vToolbar = object : VToolbar<Toolbar, Toolbar.LayoutParams>(size) {
+
+            override fun createView(context: Context): Toolbar = Toolbar(context)
+
+            override fun getChildLayoutParams(width: Int, height: Int): Toolbar.LayoutParams =
+                    Toolbar.LayoutParams(width, height)
+        }
         vToolbar.init()
         accept(vToolbar)
         return vToolbar
     }
 
-    fun vLabel(size: LayoutSize, init: VLabel.() -> Unit): VLabel {
-        val vLabel = VLabel(size)
+    fun vLabel(size: LayoutSize, init: VLabel<TextView>.() -> Unit): VLabel<TextView> {
+        val vLabel = object : VLabel<TextView>(size) {
+            override fun createView(context: Context): TextView = TextView(context)
+        }
         vLabel.init()
         accept(vLabel)
         return vLabel
@@ -74,9 +89,11 @@ interface WidgetContainer {
     fun vLabel(
             size: LayoutSize,
             vararg styles: TextView.() -> Unit,
-            init: VLabel.() -> Unit
-    ): VLabel {
-        val vLabel = VLabel(size)
+            init: VLabel<TextView>.() -> Unit
+    ): VLabel<TextView> {
+        val vLabel = object : VLabel<TextView>(size) {
+            override fun createView(context: Context): TextView = TextView(context)
+        }
         vLabel.styles = arrayOf(*styles)
         vLabel.init()
         accept(vLabel)
@@ -87,9 +104,11 @@ interface WidgetContainer {
             size: LayoutSize,
             @StringRes textResId: Int,
             vararg styles: TextView.() -> Unit,
-            init: VLabel.() -> Unit
-    ): VLabel {
-        val vLabel = VLabel(size)
+            init: VLabel<TextView>.() -> Unit
+    ): VLabel<TextView> {
+        val vLabel = object : VLabel<TextView>(size) {
+            override fun createView(context: Context): TextView = TextView(context)
+        }
         vLabel.textResId = textResId
         vLabel.styles = arrayOf(*styles)
         vLabel.init()
@@ -101,9 +120,11 @@ interface WidgetContainer {
             size: LayoutSize,
             text: String,
             vararg styles: TextView.() -> Unit,
-            init: VLabel.() -> Unit
-    ): VLabel {
-        val vLabel = VLabel(size)
+            init: VLabel<TextView>.() -> Unit
+    ): VLabel<TextView> {
+        val vLabel = object : VLabel<TextView>(size) {
+            override fun createView(context: Context): TextView = TextView(context)
+        }
         vLabel.text = text
         vLabel.styles = arrayOf(*styles)
         vLabel.init()
@@ -135,8 +156,13 @@ interface WidgetContainer {
     fun vLinear(
             size: LayoutSize,
             init: VContainer<LinearLayout, LinearLayout.LayoutParams>.() -> Unit
-    ): VLinear {
-        val vContainer = VLinear(size)
+    ): VLinear<LinearLayout, LinearLayout.LayoutParams> {
+        val vContainer = object : VLinear<LinearLayout, LinearLayout.LayoutParams>(size) {
+            override fun createView(context: Context): LinearLayout = LinearLayout(context)
+
+            override fun getChildLayoutParams(width: Int, height: Int): LinearLayout.LayoutParams =
+                    LinearLayout.LayoutParams(width, height)
+        }
         vContainer.init()
         accept(vContainer)
         return vContainer
@@ -152,30 +178,61 @@ interface WidgetContainer {
         return vContainer
     }
 
-    fun vCard(size: LayoutSize, init: VCard.() -> Unit): VCard {
-        val vCard = VCard(size)
+    fun vCard(
+            size: LayoutSize,
+            init: VCard<CardView, FrameLayout.LayoutParams>.() -> Unit
+    ): VCard<CardView, FrameLayout.LayoutParams> {
+        val vCard = object : VCard<CardView, FrameLayout.LayoutParams>(size) {
+            override fun createView(context: Context): CardView =
+                    CardView(context)
+
+            override fun getChildLayoutParams(width: Int, height: Int): FrameLayout.LayoutParams =
+                    FrameLayout.LayoutParams(width, height)
+        }
         vCard.init()
         accept(vCard)
         return vCard
     }
 
-    fun vConstraint(size: LayoutSize, init: VConstraint.() -> Unit): VConstraint {
-        val vConstraint = VConstraint(size)
+    fun vRelative(
+            size: LayoutSize,
+            init: VRelative<RelativeLayout, RelativeLayout.LayoutParams>.() -> Unit
+    ) {
+        val vRelative = object : VRelative<RelativeLayout, RelativeLayout.LayoutParams>(size) {
+
+            override fun createView(context: Context): RelativeLayout = RelativeLayout(context)
+
+            override fun getChildLayoutParams(width: Int, height: Int): RelativeLayout.LayoutParams =
+                    RelativeLayout.LayoutParams(width, height)
+        }
+    }
+
+    fun vConstraint(
+            size: LayoutSize,
+            init: VConstraint<ConstraintLayout>.() -> Unit
+    ): VConstraint<ConstraintLayout> {
+        val vConstraint = object : VConstraint<ConstraintLayout>(size) {
+            override fun createView(context: Context): ConstraintLayout = ConstraintLayout(context)
+        }
         vConstraint.init()
         accept(vConstraint)
         return vConstraint
     }
 
-    fun vImage(size: LayoutSize, resId: Int, init: VImage.() -> Unit): VImage {
-        val vImage = VImage(size)
+    fun vImage(size: LayoutSize, resId: Int, init: VImage<ImageView>.() -> Unit): VImage<ImageView> {
+        val vImage = object : VImage<ImageView>(size) {
+            override fun createView(context: Context): ImageView = ImageView(context)
+        }
         vImage.imageResId = BehaviorRelay.createDefault(resId)
         vImage.init()
         accept(vImage)
         return vImage
     }
 
-    fun vImage(size: LayoutSize, init: VImage.() -> Unit): VImage {
-        val vImage = VImage(size)
+    fun vImage(size: LayoutSize, init: VImage<ImageView>.() -> Unit): VImage<ImageView> {
+        val vImage = object : VImage<ImageView>(size) {
+            override fun createView(context: Context): ImageView = ImageView(context)
+        }
         vImage.init()
         accept(vImage)
         return vImage
@@ -196,9 +253,11 @@ interface WidgetContainer {
     fun <T : ToggleOption> T.vSimpleToggle(
             size: LayoutSize,
             selectedOption: BehaviorRelay<T>,
-            init: VSimpleToggle<T>.() -> Unit
-    ): VSimpleToggle<T> {
-        val vSimpleToggle = VSimpleToggle<T>(size)
+            init: VSimpleToggle<T, ToggleButton>.() -> Unit
+    ): VSimpleToggle<T, ToggleButton> {
+        val vSimpleToggle = object : VSimpleToggle<T, ToggleButton>(size) {
+            override fun createView(context: Context): ToggleButton = ToggleButton(context)
+        }
         vSimpleToggle.model = this
         vSimpleToggle.selectedOption = selectedOption
         vSimpleToggle.init()

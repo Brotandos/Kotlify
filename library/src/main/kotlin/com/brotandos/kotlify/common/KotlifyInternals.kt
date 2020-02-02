@@ -42,7 +42,10 @@ object KotlifyInternals {
 
     @JvmStatic
     @Throws(RuntimeException::class)
-    fun <T : VContainer<*, *>> initiateWidgetContainer(size: LayoutSize, clazz: Class<T>): T = try {
+    fun <T : VContainer<*, *>> initiateWidgetContainer(
+            size: LayoutSize,
+            clazz: Class<T>
+    ): T = try {
         clazz.getConstructor(LayoutSize::class.java).newInstance(size)
     } catch (e: NoSuchMethodException) {
         throw RuntimeException("Can't initiate WidgetContainer of class ${clazz.name}: can't find proper constructor")

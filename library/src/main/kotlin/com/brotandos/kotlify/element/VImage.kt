@@ -1,6 +1,5 @@
 package com.brotandos.kotlify.element
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
@@ -11,7 +10,7 @@ import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
 
-class VImage(size: LayoutSize) : WidgetElement<ImageView>(size) {
+abstract class VImage<V : ImageView>(size: LayoutSize) : WidgetElement<V>(size) {
 
     private var glideInit: (RequestBuilder<Drawable>.() -> RequestBuilder<Drawable>)? = null
 
@@ -22,7 +21,7 @@ class VImage(size: LayoutSize) : WidgetElement<ImageView>(size) {
     // TODO recycle after each and on dispose
     var imageBitmap: PublishRelay<Bitmap>? = null
 
-    override fun initSubscriptions(view: ImageView?) {
+    override fun initSubscriptions(view: V?) {
         super.initSubscriptions(view)
         imageResId
                 ?.observeOn(AndroidSchedulers.mainThread())
@@ -49,8 +48,6 @@ class VImage(size: LayoutSize) : WidgetElement<ImageView>(size) {
                 }
                 ?.untilLifecycleDestroy()
     }
-
-    override fun createView(context: Context): ImageView = ImageView(context)
 
     fun initGlide(init: RequestBuilder<Drawable>.() -> RequestBuilder<Drawable>) {
         glideInit = init

@@ -1,6 +1,7 @@
 package com.brotandos.kotlify.container.root
 
 import android.app.Activity
+import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import com.brotandos.kotlify.common.Air
 import com.brotandos.kotlify.common.KotlifyContext
@@ -33,7 +34,7 @@ class VRoot<T : VContainer<*, *>>(
     fun addToComposite(disposable: Disposable) = vContainer.addToComposite(disposable)
 }
 
-inline fun <reified T : VContainer<*, *>> Activity.vRoot(
+/*inline fun <V : ViewGroup, LP : ViewGroup.LayoutParams, reified T : VContainer<V, LP>> Activity.vRoot(
         init: T.() -> Unit
 ): VRoot<T> {
     val vContainer = KotlifyInternals.initiateWidgetContainer(Air, T::class.java)
@@ -42,13 +43,17 @@ inline fun <reified T : VContainer<*, *>> Activity.vRoot(
     val view = vContainer.buildWidget(this, KotlifyContext(), KotlifyInternals.rootPath)
     setContentView(view)
     return vRoot
-}
+}*/
 
-inline fun <reified T : VContainer<*, *>> Activity.vRoot(
-        lifecycleOwner: LifecycleOwner,
-        vRootOwner: VRootOwner,
+/**
+ * Generic parameters [V] and [LP] need for instantiating VContainer
+ * */
+/*
+inline fun <V : ViewGroup, LP : ViewGroup.LayoutParams, reified T : VContainer<V, LP>> Activity.vRoot(
         init: T.() -> Unit
 ): VRoot<T> {
+    val lifecycleOwner = this as? LifecycleOwner ?: throw RuntimeException("Activity must implement LifecycleOwner")
+    val vRootOwner = this as? VRootOwner ?: throw RuntimeException("Activity must implement VRootOwner")
     val vContainer = KotlifyInternals.initiateWidgetContainer(Air, T::class.java)
     val vRoot = VRoot(vContainer)
     vContainer.init()
@@ -58,4 +63,4 @@ inline fun <reified T : VContainer<*, *>> Activity.vRoot(
     vRootOwner.vRoot?.clearObservers(lifecycleOwner)
     vRootOwner.vRoot = vRoot
     return vRoot
-}
+}*/

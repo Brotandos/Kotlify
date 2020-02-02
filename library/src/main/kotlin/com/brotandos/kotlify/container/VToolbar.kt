@@ -24,7 +24,9 @@ import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 
-class VToolbar(size: LayoutSize) : VContainer<Toolbar, Toolbar.LayoutParams>(size) {
+abstract class VToolbar<V : Toolbar, LP : Toolbar.LayoutParams>(
+        size: LayoutSize
+) : VContainer<V, LP>(size) {
 
     private val menuItems = mutableListOf<VMenu>()
 
@@ -59,9 +61,7 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar, Toolbar.LayoutParams>(siz
 
     var titleTextColor: Int? = null
 
-    override fun createView(context: Context): Toolbar = Toolbar(context)
-
-    override fun initSubscriptions(view: Toolbar?) {
+    override fun initSubscriptions(view: V?) {
         super.initSubscriptions(view)
         titleResId
                 ?.observeOn(AndroidSchedulers.mainThread())
@@ -73,7 +73,7 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar, Toolbar.LayoutParams>(siz
                         ?.untilLifecycleDestroy()
     }
 
-    override fun build(context: Context, kotlifyContext: KotlifyContext): Toolbar {
+    override fun build(context: Context, kotlifyContext: KotlifyContext): V {
         val toolbar = super.build(context, kotlifyContext)
         backgroundRes?.let(toolbar::setBackgroundResource)
         resources = { context.resources }
@@ -97,9 +97,6 @@ class VToolbar(size: LayoutSize) : VContainer<Toolbar, Toolbar.LayoutParams>(siz
         }
         return toolbar
     }
-
-    override fun getChildLayoutParams(width: Int, height: Int): Toolbar.LayoutParams =
-            Toolbar.LayoutParams(width, height)
 
     fun setTitle(titleRes: Int) {
         titleResId?.accept(titleRes) ?: let {

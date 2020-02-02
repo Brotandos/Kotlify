@@ -12,15 +12,13 @@ import com.brotandos.kotlify.R
 import com.brotandos.kotlify.common.Air
 import com.brotandos.kotlify.common.Water
 import com.brotandos.kotlify.common.toggleValue
-import com.brotandos.kotlify.container.VContainer
-import com.brotandos.kotlify.container.VLinear
 import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.container.root.VRootOwner
-import com.brotandos.kotlify.container.root.vRoot
+import com.brotandos.kotlify.container.vVerticalRoot
 import com.brotandos.kotlify.element.list.VRecycler
 import com.jakewharton.rxrelay2.BehaviorRelay
 
-class TestingViewModel : ViewModel() {
+class TestingViewModel : ViewModel(), VRootOwner {
 
     private val isDark = BehaviorRelay.createDefault(false)
     private val isTextVisible = BehaviorRelay.createDefault(true)
@@ -38,14 +36,11 @@ class TestingViewModel : ViewModel() {
     )
     private val isBottomSheetButtonVisible = BehaviorRelay.createDefault(false)
 
-    private lateinit var vRoot: VRoot<*>
+    override var vRoot: VRoot<*>? = null
 
     fun markup(activity: AppCompatActivity) {
-        vRoot = activity.vRoot<VLinear>(activity, activity as VRootOwner) {
+        vRoot = vVerticalRoot(activity) {
             isDark(isDark, 0xFFEEEEEE.toInt(), 0xFF222222.toInt())
-            initView {
-                orientation = LinearLayout.VERTICAL
-            }
 
             vToolbar(50.dp.water) {
                 initView { setBackgroundColor(0xFFAAAADF.toInt()) }

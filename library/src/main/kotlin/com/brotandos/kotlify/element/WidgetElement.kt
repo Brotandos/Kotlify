@@ -107,20 +107,7 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         viewInit = init
     }
 
-    @PublishedApi
     internal var layoutInit: (V.() -> Unit)? = null
-
-    @Deprecated("Use lparams of VContainer instead")
-    inline fun <reified T : ViewGroup.LayoutParams> initLayout(crossinline init: T.() -> Unit) {
-        layoutInit = {
-            val constructor = T::class.java.getConstructor(width::class.java, height::class.java)
-            val density = context.resources.displayMetrics.density.toInt()
-            val (widgetWidth, widgetHeight) = size.getValuePair(density)
-            val instance = constructor.newInstance(widgetWidth, widgetHeight)
-            instance.init()
-            layoutParams = instance
-        }
-    }
 
     abstract fun createView(context: Context): V
 
@@ -150,9 +137,12 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
                 ?.untilLifecycleDestroy()
     }
 
+    @CallSuper
+    protected open fun initStyles(view: V?) = Unit
+
     override fun build(context: Context, kotlifyContext: KotlifyContext): V {
         val density = context.density
-        val view = createView(context)
+        val view = createView(context).also(::initStyles)
         if (id != ID_NOT_SET) {
             view.id = id
         }

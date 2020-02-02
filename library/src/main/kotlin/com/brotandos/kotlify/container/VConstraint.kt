@@ -2,18 +2,21 @@ package com.brotandos.kotlify.container
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.text.style.LineHeightSpan
 import android.view.View
+import androidx.activity.ComponentActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.edit
 import androidx.core.view.children
+import com.brotandos.kotlify.common.Air
 import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.CustomSize
+import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
-import com.brotandos.kotlify.common.LayoutLength
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.common.WrapContent
+import com.brotandos.kotlify.container.root.VRoot
+import com.brotandos.kotlify.container.root.VRootOwner
 import com.brotandos.kotlify.element.ID_NOT_SET
 import com.brotandos.kotlify.element.WidgetElement
 
@@ -28,7 +31,11 @@ typealias ConstraintMap = MutableMap<
         MutableMap<ConstraintSide, () -> ConstraintTarget>
 >
 
-class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout, ConstraintLayout.LayoutParams>(size) {
+typealias VConstraintActual = VConstraint<ConstraintLayout>
+
+abstract class VConstraint<V : ConstraintLayout>(
+        size: LayoutSize
+) : VContainer<V, ConstraintLayout.LayoutParams>(size) {
 
     private val constraints: ConstraintMap = mutableMapOf()
 
@@ -46,9 +53,7 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout, ConstraintLay
 
     val restSpaceWater = CustomSize(0.dp, WrapContent)
 
-    override fun createView(context: Context) = ConstraintLayout(context)
-
-    override fun onBuildFinished(constraintLayout: ConstraintLayout) {
+    override fun onBuildFinished(constraintLayout: V) {
         super.onBuildFinished(constraintLayout)
         val sharedPreferences = constraintLayout.context.getSharedPreferences(
                 KotlifyInternals.IDS_CACHE_FILE_NAME,
@@ -118,15 +123,6 @@ class VConstraint(size: LayoutSize) : VContainer<ConstraintLayout, ConstraintLay
 
     fun WidgetElement<*>.bottomTo(targetGetter: () -> VerticalTarget) =
             addConstraint(this, ConstraintSide.Bottom, targetGetter)
-
-    fun WidgetElement<*>.lparams(
-            density: Int,
-            init: ConstraintLayout.LayoutParams.() -> Unit
-    ) {
-        val (widgetWidth, widgetHeight) = size.getValuePair(density)
-        val layoutParams = ConstraintLayout.LayoutParams(widgetWidth, widgetHeight)
-        layoutParams.init()
-    }
 
     private fun addConstraint(
             sourceWidget: WidgetElement<*>,
@@ -238,3 +234,20 @@ class VerticalTarget(
         targetWidget,
         margin
 )
+
+inline fun VRootOwner.vConstraintRoot(
+        activity: ComponentActivity,
+        init: VConstraintActual.() -> Unit
+): VRoot<VConstraintActual> {
+    val vContainer = object : VConstraintActual(Air) {
+        override fun createView(context: Context): ConstraintLayout = ConstraintLayout(context)
+    }
+    val vNewRoot = VRoot<VConstraintActual>(vContainer)
+    vContainer.init()
+    val view = vContainer.buildWidget(activity, KotlifyContext(), KotlifyInternals.rootPath)
+    activity.setContentView(view)
+    vNewRoot.disposeOnViewDestroyed(activity)
+    this.vRoot?.clearObservers(activity)
+    this.vRoot = vNewRoot
+    return vNewRoot
+}

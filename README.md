@@ -5,15 +5,14 @@
 
 ### MINOR TODO
 * Fix bottom sheet dialog on orientation changed (wrong width and height)
-* VButton
-* VRelative
-* VHorizontal and VVertical
 * VEditable
 * VTextField
 * Add guidlines and barriers to VConstraint
 * VPermission
+* Add typealiases for widget elements and containers
 
 ### MAJOR TODO
+* VButton (MaterialButton is still in alpha)
 * Implement toolbar badges
 * Implement menu for drawer and bottomNavView
 * Navigating to another fragment, on view with 'to' prop clicked
@@ -36,6 +35,8 @@
 * ~~Implement ConstraintLayout's pattern of markup~~
 * ~~Implement dialog (alert, bottomSheetView)~~
 * ~~Implement recyclerview's several viewTypes~~
+* ~~VRelative~~
+* ~~VHorizontal and VVertical~~
 
 ### Thanks to
 * [Vuetify library for inspiration](vuetifyjs.com)
