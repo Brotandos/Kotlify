@@ -80,27 +80,27 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
             isEnabledRelay = value
         }
 
-    var clickRelay: PublishRelay<Unit> = PublishRelay.create()
+    var clickRelay: PublishRelay<Unit>? = null
+        set(value) {
+            if (field != null) throw IllegalStateException("You can assign field of clickRelay only once")
+            field = value
+        }
 
     fun throttleClick(
-            timeout: Int = ThrottleClickProperties.TIMEOUT.toInt(),
+            timeout: Int = ThrottleClickProperties.DEFAULT_TIMEOUT.toInt(),
             onClick: () -> Unit
-    ): Disposable {
-        val clickDisposable = clickRelay
-                .throttleFirst(timeout.toLong(), ThrottleClickProperties.timeUnit)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { onClick() }
-        disposables.add(clickDisposable)
-        return clickDisposable
-    }
+    ): Disposable =
+            getClickRelayInstance()
+                    .throttleFirst(timeout.toLong(), ThrottleClickProperties.timeUnit)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe { onClick() }
+                    .also { disposables.add(it) }
 
-    fun onClick(f: () -> Unit): Disposable {
-        val clickDisposable = clickRelay
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { f() }
-        disposables.add(clickDisposable)
-        return clickDisposable
-    }
+    fun onClick(f: () -> Unit): Disposable =
+            getClickRelayInstance()
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe { f() }
+                    .also { disposables.add(it) }
 
     private var viewInit: (V.() -> Unit)? = null
     fun initView(init: V.() -> Unit) {
@@ -155,8 +155,10 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         initSubscriptions(view)
         // FIXME itemView inside VRecycler doesn't emit WidgetElement#onClick
         if (!view.hasOnClickListeners()) {
-            view.setOnClickListener {
-                clickRelay.accept(Unit)
+            clickRelay?.let { relay ->
+                view.setOnClickListener {
+                    relay.accept(Unit)
+                }
             }
         }
         activityToNavigateOnClick?.let {
@@ -201,8 +203,11 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     protected val Context.density get() = resources.displayMetrics.density.toInt()
 
+    private fun getClickRelayInstance() =
+            clickRelay ?: PublishRelay.create<Unit>().also { clickRelay = it }
+
     object ThrottleClickProperties {
-        const val TIMEOUT = 400L
+        const val DEFAULT_TIMEOUT = 400L
         val timeUnit = TimeUnit.MILLISECONDS
     }
 

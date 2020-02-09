@@ -10,6 +10,7 @@
 * Add guidlines and barriers to VConstraint
 * VPermission
 * Add typealiases for widget elements and containers
+* Replace LinearLayout with LinearLayoutCompat
 
 ### MAJOR TODO
 * VButton (MaterialButton is still in alpha)

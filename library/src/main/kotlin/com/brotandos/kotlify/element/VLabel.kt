@@ -25,7 +25,7 @@ abstract class VLabel<V : TextView>(size: LayoutSize) : WidgetElement<V>(size) {
 
     var gravity: Int? = null
 
-    var styles: Array<TextView.() -> Unit>? = null
+    var styles: Array<V.() -> Unit>? = null
 
     @ColorInt
     var textColor: Int? = null

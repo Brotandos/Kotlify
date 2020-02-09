@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.Gravity
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -20,32 +21,35 @@ import com.brotandos.kotlify.common.CustomSize
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.common.MatchParent
 import com.brotandos.kotlify.element.ToggleOption
+import com.brotandos.kotlify.element.VButton
+import com.brotandos.kotlify.element.VEdit
 import com.brotandos.kotlify.element.VImage
 import com.brotandos.kotlify.element.VLabel
-import com.brotandos.kotlify.element.list.VRecycler
 import com.brotandos.kotlify.element.VSimpleToggle
 import com.brotandos.kotlify.element.VToggleGroup
 import com.brotandos.kotlify.element.WidgetElement
 import com.brotandos.kotlify.element.list.LayoutManager
+import com.brotandos.kotlify.element.list.VRecycler
+import com.google.android.material.button.MaterialButton
 import com.jakewharton.rxrelay2.BehaviorRelay
 
 interface WidgetContainer {
 
     val Int.dp: CustomLength
         get() = CustomLength(
-            this
+                this
         )
 
     val CustomLength.water: LayoutSize
         get() = CustomSize(
-            MatchParent,
-            this
+                MatchParent,
+                this
         )
 
     val CustomLength.fire: LayoutSize
         get() = CustomSize(
-            this,
-            MatchParent
+                this,
+                MatchParent
         )
 
     // FIXME real height smaller than from xml
@@ -130,6 +134,31 @@ interface WidgetContainer {
         vLabel.init()
         accept(vLabel)
         return vLabel
+    }
+
+    fun vEdit(
+            size: LayoutSize,
+            vararg styles: EditText.() -> Unit,
+            init: VEdit<EditText>.() -> Unit
+    ): VEdit<EditText> {
+        val vEdit = object : VEdit<EditText>(size) {
+            override fun createView(context: Context): EditText = EditText(context)
+        }
+        vEdit.styles = arrayOf(*styles)
+        vEdit.init()
+        accept(vEdit)
+        return vEdit
+    }
+
+    fun vButton(
+            size: LayoutSize,
+            init: VButton<MaterialButton>.() -> Unit
+    ): VButton<MaterialButton> {
+        val vButton = object : VButton<MaterialButton>(size) {
+            override fun createView(context: Context): MaterialButton = MaterialButton(context)
+        }.also(init)
+        accept(vButton)
+        return vButton
     }
 
     fun vList(
@@ -279,7 +308,7 @@ interface WidgetContainer {
         get() = { setTypeface(this@italic, Typeface.ITALIC) }
 
     val Typeface.boldItalic: TextView.() -> Unit
-        get() =  { setTypeface(this@boldItalic, Typeface.BOLD_ITALIC) }
+        get() = { setTypeface(this@boldItalic, Typeface.BOLD_ITALIC) }
 
     val bold: TextView.() -> Unit
         get() = { setTypeface(typeface, Typeface.BOLD) }
@@ -288,10 +317,10 @@ interface WidgetContainer {
         get() = { setTypeface(typeface, Typeface.ITALIC) }
 
     val boldItalic: TextView.() -> Unit
-        get() =  { setTypeface(typeface, Typeface.BOLD_ITALIC) }
+        get() = { setTypeface(typeface, Typeface.BOLD_ITALIC) }
 
     val blackText: TextView.() -> Unit
-        get() =  { setTextColor(Color.BLACK) }
+        get() = { setTextColor(Color.BLACK) }
 
     val Float.sp: TextView.() -> Unit
         get() = { textSize = this@sp }
@@ -304,4 +333,7 @@ interface WidgetContainer {
 
     val unselectable: TextView.() -> Unit
         get() = { setTextIsSelectable(false) }
+
+    val singleLine: TextView.() -> Unit
+        get() = { isSingleLine = true }
 }
