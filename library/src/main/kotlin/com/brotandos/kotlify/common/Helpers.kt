@@ -6,43 +6,42 @@ import android.net.Uri
 import android.os.Parcelable
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 
-const val NO_FLAGS = -1
+const val NO_INTENT_FLAGS = -1
 
-open class KotlifyException(message: String = "") : RuntimeException(message)
+const val EMPTY = ""
+
+open class KotlifyException(message: String = EMPTY) : RuntimeException(message)
 
 object NoGetterException : KotlifyException("There's no getter for this property")
 
 @MainThread
 inline fun <reified VM : ViewModel> FragmentActivity.viewModels(): Lazy<VM> =
-    object : Lazy<VM> {
-        private var cached: VM? = null
+        object : Lazy<VM> {
+            private var cached: VM? = null
 
-        override val value: VM
-            get() = cached ?: ViewModelProviders
-                    .of(this@viewModels)
-                    .get(VM::class.java)
-                    .also { cached = it }
+            override val value: VM
+                get() = cached ?: ViewModelProvider(this@viewModels)
+                        .get(VM::class.java)
+                        .also { cached = it }
 
-        override fun isInitialized(): Boolean = cached != null
-    }
+            override fun isInitialized(): Boolean = cached != null
+        }
 
-inline fun <reified T : Activity> Activity.startActivity(flags: Int = NO_FLAGS) {
+inline fun <reified T : Activity> Activity.startActivity(flags: Int = NO_INTENT_FLAGS) {
     val intent = Intent(this, T::class.java)
-    if (flags != NO_FLAGS) intent.addFlags(flags)
+    if (flags != NO_INTENT_FLAGS) intent.addFlags(flags)
     startActivity(intent)
 }
 
 inline fun <reified T : Activity> Activity.startActivity(
         vararg parcelables: Pair<String, Parcelable>,
-        flags: Int = NO_FLAGS
+        flags: Int = NO_INTENT_FLAGS
 ) {
     val intent = Intent(this, T::class.java)
-    if (flags != NO_FLAGS) intent.addFlags(flags)
+    if (flags != NO_INTENT_FLAGS) intent.addFlags(flags)
     parcelables.forEach {
         intent.putExtra(it.first, it.second)
     }
@@ -57,17 +56,3 @@ fun Activity.browse(url: String) {
 
 inline fun <reified T : Activity> T.restart() =
         startActivity<T>(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-
-fun FragmentManager.commit(block: FragmentTransaction.() -> FragmentTransaction): Int =
-        beginTransaction().block().commit()
-
-fun FragmentManager.commitNow(block: FragmentTransaction.() -> FragmentTransaction) =
-        beginTransaction().block().commitNow()
-
-fun FragmentManager.commitAllowingStateLoss(
-        block: FragmentTransaction.() -> FragmentTransaction
-): Int = beginTransaction().block().commitAllowingStateLoss()
-
-fun FragmentManager.commitNowAllowingStateLoss(
-        block: FragmentTransaction.() -> FragmentTransaction
-) = beginTransaction().block().commitNowAllowingStateLoss()

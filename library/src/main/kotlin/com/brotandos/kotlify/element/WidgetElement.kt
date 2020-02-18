@@ -56,9 +56,41 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     var id = ID_NOT_SET
 
-    var minWidth: CustomLength? = null
+    var widthRange: Pair<CustomLength?, CustomLength?>? = null
 
-    var minHeight: CustomLength? = null
+    var heightRange: Pair<CustomLength?, CustomLength?>? = null
+
+    var minWidth: CustomLength
+        @Deprecated(NO_GETTER, level = DeprecationLevel.ERROR)
+        get() = KotlifyInternals.noGetter()
+        set(value) {
+            val currentMaxWidth = widthRange?.second
+            widthRange = value to currentMaxWidth
+        }
+
+    var maxWidth: CustomLength
+        @Deprecated(NO_GETTER, level = DeprecationLevel.ERROR)
+        get() = KotlifyInternals.noGetter()
+        set(value) {
+            val currentMinWidth = widthRange?.first
+            widthRange = currentMinWidth to value
+        }
+
+    var minHeight: CustomLength
+        @Deprecated(NO_GETTER, level = DeprecationLevel.ERROR)
+        get() = KotlifyInternals.noGetter()
+        set(value) {
+            val currentMaxHeight = heightRange?.second
+            widthRange = value to currentMaxHeight
+        }
+
+    var maxHeight: CustomLength
+        @Deprecated(NO_GETTER, level = DeprecationLevel.ERROR)
+        get() = KotlifyInternals.noGetter()
+        set(value) {
+            val currentMinHeight = heightRange?.first
+            widthRange = currentMinHeight to value
+        }
 
     var actualWidth: Int? = null
         internal set
@@ -146,19 +178,19 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         if (id != ID_NOT_SET) {
             view.id = id
         }
-        minWidth?.let { view.minimumWidth = it.getValue(density) }
-        minHeight?.let { view.minimumHeight = it.getValue(density) }
+
         val (width, height) = size.getValuePair(density)
         view.layoutParams = ViewGroup.LayoutParams(width, height)
         viewInit?.invoke(view)
         layoutInit?.invoke(view)
         initSubscriptions(view)
-        // FIXME itemView inside VRecycler doesn't emit WidgetElement#onClick
-        if (!view.hasOnClickListeners()) {
-            clickRelay?.let { relay ->
-                view.setOnClickListener {
-                    relay.accept(Unit)
-                }
+
+        if (view.hasOnClickListeners())
+            throw IllegalStateException("There shouldn't be onClickListener set up straightly, use onClick or throttleClick functions instead")
+
+        clickRelay?.let { relay ->
+            view.setOnClickListener {
+                relay.accept(Unit)
             }
         }
         activityToNavigateOnClick?.let {
@@ -175,7 +207,7 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
      * */
     @CallSuper
     @Throws(ContextAnonymousException::class)
-    fun buildWidget(
+    open fun buildWidget(
             context: Context,
             kotlifyContext: KotlifyContext,
             pathInTree: List<Int>
@@ -184,6 +216,50 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         packageName = context.packageName
         this.pathInsideTree = pathInTree
         return build(context, kotlifyContext)
+    }
+
+    // FIXME doesn't work for recyclerView
+    @CallSuper
+    internal open fun onAttachedToParent(builtView: View) {
+        val density = builtView.context.density
+        widthRange?.let { (minWidth, maxWidth) ->
+            minWidth?.run {
+                val minimumWidth = getValue(density)
+                if (minimumWidth <= builtView.width) return@run
+                val layoutParams = builtView.layoutParams
+                layoutParams.width = minimumWidth
+                builtView.layoutParams = layoutParams
+                return@let
+            }
+            maxWidth?.run {
+                val maximumWidth = getValue(density)
+                if (maximumWidth >= builtView.width) return@run
+                val layoutParams = builtView.layoutParams
+                layoutParams.width = maximumWidth
+                builtView.layoutParams = layoutParams
+                return@let
+            }
+        }
+        heightRange?.let { (minHeight, maxHeight) ->
+            minHeight?.run {
+                val minimumHeight = getValue(density)
+                if (minimumHeight <= builtView.height) return@run
+                val layoutParams = builtView.layoutParams
+                layoutParams.width = minimumHeight
+                builtView.layoutParams = layoutParams
+                return@let
+            }
+            maxHeight?.run {
+                val maximumHeight = getValue(density)
+                if (maximumHeight >= builtView.height) return@run
+                val layoutParams = builtView.layoutParams
+                layoutParams.width = maximumHeight
+                builtView.layoutParams = layoutParams
+                return@let
+            }
+        }
+        actualWidth = builtView.width
+        actualHeight = builtView.height
     }
 
     fun getIdKey(): String = buildString {
@@ -197,7 +273,6 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
     }
 
     inline fun <reified T : Activity> to(vararg parcelables: Pair<String, Parcelable>) {
-
         activityToNavigateOnClick = T::class.java
     }
 
@@ -205,6 +280,8 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
     private fun getClickRelayInstance() =
             clickRelay ?: PublishRelay.create<Unit>().also { clickRelay = it }
+
+    operator fun CustomLength?.rangeTo(upperBound: CustomLength?) = this to upperBound
 
     object ThrottleClickProperties {
         const val DEFAULT_TIMEOUT = 400L

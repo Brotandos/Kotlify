@@ -5,7 +5,7 @@ import com.google.android.material.button.MaterialButton
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
 
-abstract class VButton<V : MaterialButton>(size: LayoutSize) : WidgetElement<V>(size) {
+abstract class VButton<V : MaterialButton>(size: LayoutSize) : VLabel<V>(size) {
 
     var isChecked: BehaviorRelay<Boolean>? = null
 

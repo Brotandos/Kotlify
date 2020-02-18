@@ -12,9 +12,10 @@ import com.brotandos.kotlify.R
 import com.brotandos.kotlify.common.Air
 import com.brotandos.kotlify.common.Water
 import com.brotandos.kotlify.common.toggleValue
+import com.brotandos.kotlify.container.VVertical
 import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.container.root.VRootOwner
-import com.brotandos.kotlify.container.vVerticalRoot
+import com.brotandos.kotlify.container.root.vRoot
 import com.brotandos.kotlify.element.list.VRecycler
 import com.jakewharton.rxrelay2.BehaviorRelay
 
@@ -26,20 +27,18 @@ class TestingViewModel : ViewModel(), VRootOwner {
     private val isLoading2 = BehaviorRelay.createDefault(false)
     private val isDialog = BehaviorRelay.createDefault(false)
     private val isBottomDialog = BehaviorRelay.createDefault(false)
-    private val listRelay = BehaviorRelay.createDefault(
-            listOf(
-                    Number(1),
-                    Text("a"),
-                    Text("b"),
-                    Number(2)
-            )
-    )
+    private val listMediator = VRecycler.Mediator().also { it.addItems(listOf(
+            Number(1),
+            Text("a"),
+            Text("b"),
+            Number(2)
+    )) }
     private val isBottomSheetButtonVisible = BehaviorRelay.createDefault(false)
 
     override var vRoot: VRoot<*>? = null
 
     fun markup(activity: AppCompatActivity) {
-        vRoot = vVerticalRoot(activity) {
+        vRoot = vRoot<VVertical>(activity) {
             isDark(isDark, 0xFFEEEEEE.toInt(), 0xFF222222.toInt())
 
             vToolbar(50.dp.water) {
@@ -61,12 +60,10 @@ class TestingViewModel : ViewModel(), VRootOwner {
             vCustom<Button>(200.dp x 200.dp) {
                 id = R.id.bottom_sheet_dialog_trigger
                 lparams { gravity = Gravity.START }
-                initView {
-                    text = "Show bottom sheet"
-                    setOnClickListener {
-                        isBottomDialog.accept(true)
-                        isDark.toggleValue()
-                    }
+                initView { text = "Show bottom sheet" }
+                onClick {
+                    isBottomDialog.accept(true)
+                    isDark.toggleValue()
                 }
             }
 
@@ -80,7 +77,7 @@ class TestingViewModel : ViewModel(), VRootOwner {
                 }
             }
 
-            vList(Water, listRelay) {
+            vList(Water, listMediator) {
                 initView { layoutManager = LinearLayoutManager(context) }
                 vItem<Number> {
                     vCustom<TextView> {

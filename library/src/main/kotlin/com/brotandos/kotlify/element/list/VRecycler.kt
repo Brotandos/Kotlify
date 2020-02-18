@@ -9,11 +9,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.brotandos.kotlify.common.Air
+import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.KotlifyContext
+import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutSize
+import com.brotandos.kotlify.common.Water
+import com.brotandos.kotlify.common.accept
 import com.brotandos.kotlify.container.VContainer
+import com.brotandos.kotlify.container.VFrameItself
 import com.brotandos.kotlify.element.WidgetElement
-import com.jakewharton.rxrelay2.BehaviorRelay
+import com.jakewharton.rxrelay2.PublishRelay
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import kotlin.reflect.KClass
@@ -24,20 +30,13 @@ import kotlin.reflect.KClass
  * - Add ability to add and remove data
  * - Add pagination
  * - Store items by node (each element has reference to previous and next elements)
+ * - Fix broken height of each item
  * */
 class VRecycler(
-        private val itemsRelay: BehaviorRelay<List<Item>>,
+        private val mediator: Mediator,
         private val layoutManager: LayoutManager,
         size: LayoutSize
 ) : WidgetElement<RecyclerView>(size) {
-
-    private val itemsActions = BehaviorRelay.createDefault<RecyclerItemsActions<Item>>(
-            RecyclerItemsActions.Clear
-    )
-
-    private val list = mutableListOf<Item>()
-
-    private val items: List<Item> get() = itemsRelay.value
 
     private var adapter: RecyclerView.Adapter<KotlifyViewHolder>? = null
 
@@ -48,46 +47,15 @@ class VRecycler(
 
     override fun initSubscriptions(view: RecyclerView?) {
         super.initSubscriptions(view)
-        itemsRelay
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { adapter?.notifyDataSetChanged() }
-                .untilLifecycleDestroy()
-
-        itemsActions
+        mediator.actionObservable
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
                     when (it) {
-                        is RecyclerItemsActions.Clear ->
-                            if (list.isNotEmpty()) {
-                                val size = list.size
-                                list.clear()
-                                adapter?.notifyItemRangeRemoved(0, size)
-                            }
-                        is RecyclerItemsActions.AddItem<Item> ->
-                            if (it.index == RecyclerItemsActions.ADD_TO_END) {
-                                list.add(it.item)
-                                adapter?.notifyItemInserted(list.lastIndex)
-                            } else {
-                                list.add(it.index, it.item)
-                                adapter?.notifyItemInserted(it.index)
-                            }
-                        is RecyclerItemsActions.AddItems<Item> ->
-                            if (it.index == RecyclerItemsActions.ADD_TO_END) {
-                                val lastIndex = list.size
-                                list.addAll(it.newItems)
-                                adapter?.notifyItemRangeInserted(lastIndex, it.newItems.size)
-                            } else {
-                                list.addAll(it.index, it.newItems)
-                                adapter?.notifyItemRangeInserted(it.index, it.newItems.size)
-                            }
-                        is RecyclerItemsActions.RemoveItem<*> -> {
-                            list.removeAt(it.index)
-                            adapter?.notifyItemRemoved(it.index)
-                        }
-                        is RecyclerItemsActions.RemoveItems<*> -> {
-                            list.subList(it.startIndex, it.itemsCount - it.startIndex)
-                            adapter?.notifyItemRangeRemoved(it.startIndex, it.itemsCount)
-                        }
+                        is RecyclerItemsAction.Clear -> clearItems(it.size)
+                        is RecyclerItemsAction.AddItem<*> -> addItem(it)
+                        is RecyclerItemsAction.AddItems<*> -> addItems(it)
+                        is RecyclerItemsAction.RemoveItem<*> -> removeItem(it.index)
+                        is RecyclerItemsAction.RemoveItems<*> -> removeItems(it)
                     }
                 }
                 .untilLifecycleDestroy()
@@ -99,7 +67,7 @@ class VRecycler(
             view.adapter = it
             adapter = it
         }
-        view.layoutManager = when (layoutManager){
+        view.layoutManager = when (layoutManager) {
             is LayoutManager.Linear -> LinearLayoutManager(context)
             is LayoutManager.Grid -> GridLayoutManager(context, layoutManager.spanCount)
             is LayoutManager.Staggered -> StaggeredGridLayoutManager(
@@ -110,12 +78,46 @@ class VRecycler(
         return view
     }
 
+    private fun clearItems(size: Int) {
+        adapter?.notifyItemRangeRemoved(0, size)
+    }
+
+    private fun addItem(action: RecyclerItemsAction.AddItem<*>) {
+        when (val condition = action.insertCondition) {
+            is RecyclerItemsAction.InsertCondition.AddToEnd ->
+                adapter?.notifyItemInserted(mediator.list.size)
+            is RecyclerItemsAction.InsertCondition.AddInside ->
+                adapter?.notifyItemInserted(condition.insertPosition)
+        }
+    }
+
+    private fun addItems(action: RecyclerItemsAction.AddItems<*>) {
+        when (val condition = action.insertCondition) {
+            is RecyclerItemsAction.InsertCondition.AddToEnd ->
+                adapter?.notifyItemRangeInserted(mediator.list.size, action.newItems.size)
+            is RecyclerItemsAction.InsertCondition.AddInside ->
+                adapter?.notifyItemRangeInserted(condition.insertPosition, action.newItems.size)
+        }
+    }
+
+    private fun removeItem(index: Int) {
+        adapter?.notifyItemRemoved(index)
+    }
+
+    private fun removeItems(action: RecyclerItemsAction.RemoveItems<*>) {
+        try {
+            adapter?.notifyItemRangeRemoved(action.startIndex, action.itemsCount)
+        } catch (indexOutOfBoundException: IndexOutOfBoundsException) {
+            adapter?.notifyDataSetChanged()
+        }
+    }
+
     private fun getAdapter(
             kotlifyContext: KotlifyContext
     ) = object : RecyclerView.Adapter<KotlifyViewHolder>() {
 
         override fun onCreateViewHolder(parent: ViewGroup, position: Int): KotlifyViewHolder {
-            val item = items[position]
+            val item = mediator.list[position]
             val vElement = itemsMarkupMap[item::class]
                     ?.invoke(item)
                     ?: throw RuntimeException("vItem is not set")
@@ -133,7 +135,7 @@ class VRecycler(
 
         override fun onBindViewHolder(holder: KotlifyViewHolder, position: Int) = Unit
 
-        override fun getItemCount(): Int = items.size
+        override fun getItemCount(): Int = mediator.list.size
 
         override fun getItemViewType(position: Int) = position
     }
@@ -141,14 +143,19 @@ class VRecycler(
     inline fun <reified E : Item> vItem(
             crossinline itemView: VContainer<*, *>.(E) -> WidgetElement<*>
     ) {
-        val vContainer = object : VContainer<FrameLayout, FrameLayout.LayoutParams>(Air) {
-            override fun createView(context: Context): FrameLayout = FrameLayout(context)
-
-            override fun getChildLayoutParams(width: Int, height: Int): FrameLayout.LayoutParams =
-                    FrameLayout.LayoutParams(width, height)
-        }
         itemsMarkupMap[E::class] = {
-            vContainer.itemView(it as E)
+            VFrameItself(Earth).apply {
+                itemView(it as E)
+            }
+        }
+    }
+
+    inline fun <reified E : Item, reified V : VContainer<*, *>>vItem(
+            size: LayoutSize,
+            crossinline itemView: V.(E) -> Unit
+    ) {
+        itemsMarkupMap[E::class] = {
+            KotlifyInternals.initiateWidgetContainer(size, V::class.java).apply { itemView(it as E) }
         }
     }
 
@@ -163,30 +170,76 @@ class VRecycler(
     }
 
     interface Item
+
+    class Mediator {
+
+        // TODO check for thread safety
+        private val mutableList = mutableListOf<Item>()
+        val list: List<Item> = mutableList
+
+        private val actionRelay = PublishRelay.create<RecyclerItemsAction<Item>>()
+        val actionObservable: Observable<RecyclerItemsAction<Item>> = actionRelay.hide()
+
+        fun clearItems() {
+            if (list.isEmpty()) return
+            val size = list.size
+            mutableList.clear()
+            actionRelay accept RecyclerItemsAction.Clear(size)
+        }
+
+        fun addItem(item: Item) {
+            mutableList.add(item)
+            actionRelay accept RecyclerItemsAction.AddItem(item)
+        }
+
+        fun addItem(item: Item, index: Int) {
+            mutableList.add(item)
+            actionRelay accept RecyclerItemsAction.AddItem(
+                    item,
+                    RecyclerItemsAction.InsertCondition.AddInside(index)
+            )
+        }
+
+        fun addItems(items: List<Item>) {
+            mutableList.addAll(items)
+            actionRelay accept RecyclerItemsAction.AddItems(items)
+        }
+
+        fun removeItem(index: Int) {
+            mutableList.removeAt(index)
+            actionRelay accept RecyclerItemsAction.RemoveItem(index)
+        }
+
+        fun removeItems(startIndex: Int, itemsCount: Int) {
+            mutableList.subList(startIndex, startIndex + itemsCount).clear()
+            actionRelay accept RecyclerItemsAction.RemoveItems(startIndex = startIndex, itemsCount = itemsCount)
+        }
+    }
 }
 
-sealed class RecyclerItemsActions<T : VRecycler.Item> {
+sealed class RecyclerItemsAction<T : VRecycler.Item> {
 
-    companion object {
-        const val ADD_TO_END = -1
-    }
-
-    object Clear : RecyclerItemsActions<VRecycler.Item>()
+    class Clear(val size: Int) : RecyclerItemsAction<VRecycler.Item>()
 
     class AddItem<T : VRecycler.Item>(
             val item: T,
-            val index: Int = ADD_TO_END
-    ) : RecyclerItemsActions<T>()
+            val insertCondition: InsertCondition = InsertCondition.AddToEnd
+    ) : RecyclerItemsAction<T>()
 
     class AddItems<T : VRecycler.Item>(
             val newItems: List<T>,
-            val index: Int = ADD_TO_END
-    ) : RecyclerItemsActions<T>()
+            val insertCondition: InsertCondition = InsertCondition.AddToEnd
+    ) : RecyclerItemsAction<T>()
 
-    class RemoveItem<T : VRecycler.Item>(val index: Int) : RecyclerItemsActions<T>()
+    class RemoveItem<T : VRecycler.Item>(val index: Int) : RecyclerItemsAction<T>()
 
     class RemoveItems<T : VRecycler.Item>(
             val itemsCount: Int,
             val startIndex: Int = 0
-    ) : RecyclerItemsActions<T>()
+    ) : RecyclerItemsAction<T>()
+
+    sealed class InsertCondition {
+        object AddToEnd : InsertCondition()
+        class AddInside(val insertPosition: Int = 0) : InsertCondition()
+    }
 }

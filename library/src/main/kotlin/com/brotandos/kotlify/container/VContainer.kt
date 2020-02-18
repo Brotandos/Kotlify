@@ -13,8 +13,10 @@ import com.brotandos.kotlify.container.modal.VDialog
 import com.brotandos.kotlify.element.UiEntity
 import com.brotandos.kotlify.element.WidgetElement
 import io.reactivex.disposables.Disposable
+import kotlin.reflect.full.isSubclassOf
 
-abstract class VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
+abstract class
+VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
     size: LayoutSize
 ) : WidgetElement<V>(size), WidgetContainer {
 
@@ -50,19 +52,27 @@ abstract class VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
             ) as? View ?: throw RuntimeException("Generic type of widget must extend View")
             // TODO use custom exception
             viewGroup.addView(child)
-            uiEntity.actualWidth = child.width
-            uiEntity.actualHeight = child.height
+            // uiEntity.onAttachedToParent(child)
         }
     }
 
-    fun WidgetElement<*>.lparams(init: LP.() -> Unit) {
-        this.layoutInit = {
+    @Throws(IllegalStateException::class)
+    fun <T : WidgetElement<*>> T.lparams(init: LP.() -> Unit): T {
+        val parent = this@VContainer
+        val element = this.takeIf { it !== parent }
+                ?: throw IllegalStateException("You cannot create layout params from itself")
+
+        if (parent.children.none { it === element })
+            throw IllegalStateException("$parent isn't parent of $element. Check lparams function attaching for validity")
+
+        element.layoutInit = {
             val density = context.resources.displayMetrics.density.toInt()
             val (widgetWidth, widgetHeight) = size.getValuePair(density)
             val instance = getChildLayoutParams(widgetWidth, widgetHeight)
             instance.init()
             layoutParams = instance
         }
+        return element
     }
 
     abstract fun getChildLayoutParams(width: Int, height: Int): LP
@@ -75,8 +85,8 @@ abstract class VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
         }
-        vElement.init()
         inlineChildren += vElement
+        vElement.init()
         return vElement
     }
 
@@ -102,8 +112,8 @@ abstract class VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
                 return constructor.newInstance(width, height)
             }
         }
-        vContainer.init()
         inlineChildren += vContainer
+        vContainer.init()
         return vContainer
     }
 

@@ -23,12 +23,11 @@ abstract class VSimpleToggle<T : ToggleOption, V : ToggleButton>(
             view.textOn = it
         }
         view.setOnCheckedChangeListener { _, isChecked ->
+            view.isEnabled = !isChecked
             if (isCheckedRelay?.value == isChecked)
                 return@setOnCheckedChangeListener view.setChecked(true)
 
-            if (isChecked) {
-                selectedOption?.accept(model)
-            }
+            keepCheckedOnTrue(isChecked)
             isCheckedRelay?.accept(isChecked)
         }
     }
@@ -46,10 +45,17 @@ abstract class VSimpleToggle<T : ToggleOption, V : ToggleButton>(
         isCheckedRelay
                 ?.distinctUntilChanged()
                 ?.observeOn(AndroidSchedulers.mainThread())
-                ?.subscribe {
-                    view?.isChecked = it
-                    if (it) selectedOption?.accept(model)
+                ?.subscribe { isChecked ->
+                    view?.isChecked = isChecked
+                    keepCheckedOnTrue(isChecked)
                 }
                 ?.untilLifecycleDestroy()
+    }
+
+    private fun keepCheckedOnTrue(isChecked: Boolean) {
+        if (!isChecked) return
+        model
+                ?.let { selectedOption?.accept(it) }
+                ?: throw IllegalStateException("model shouldn't be null")
     }
 }

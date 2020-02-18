@@ -59,8 +59,8 @@ abstract class ModalElement<D : Dialog> : UiEntity<D>(),
             override fun createView(context: Context): V =
                     KotlifyInternals.initiateView(context, V::class.java)
         }
-        vElement.init()
         vContent = vElement
+        vElement.init()
         return vElement
     }
 
@@ -76,8 +76,8 @@ abstract class ModalElement<D : Dialog> : UiEntity<D>(),
                 return constructor.newInstance(width, height)
             }
         }
-        vContainer.init()
         vContent = vContainer
+        vContainer.init()
         return vContainer
     }
 

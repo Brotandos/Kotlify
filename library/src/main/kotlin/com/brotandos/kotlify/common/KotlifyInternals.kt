@@ -9,6 +9,7 @@ import androidx.core.content.edit
 import com.brotandos.kotlify.container.VContainer
 import com.brotandos.kotlify.element.WidgetElement
 import com.jakewharton.rxrelay2.BehaviorRelay
+import com.jakewharton.rxrelay2.Relay
 
 object KotlifyInternals {
 
@@ -73,11 +74,16 @@ object KotlifyInternals {
     }
 }
 
-infix fun <T> BehaviorRelay<T>.accept(newValue: T) = accept(newValue)
-fun <T>BehaviorRelay<T>.reAccept() = accept(value)
-fun BehaviorRelay<Boolean>.toggleValue() = accept(!value)
+infix fun <T> Relay<T>.accept(newValue: T) = accept(newValue)
 
-operator fun BehaviorRelay<Int>.plusAssign(number: Int) = accept(value + number)
-operator fun BehaviorRelay<Int>.minusAssign(number: Int) = accept(value - number)
-operator fun BehaviorRelay<Int>.timesAssign(number: Int) = accept(value * number)
-operator fun BehaviorRelay<Int>.divAssign(number: Int) = accept(value / number)
+fun <T>BehaviorRelay<T>.getNonNullValue() = value
+        ?: throw IllegalStateException("Relay shouldn't have null value")
+
+fun <T>BehaviorRelay<T>.reAccept() = accept(getNonNullValue())
+
+fun BehaviorRelay<Boolean>.toggleValue() = accept(getNonNullValue())
+
+operator fun BehaviorRelay<Int>.plusAssign(number: Int) = accept(getNonNullValue() + number)
+operator fun BehaviorRelay<Int>.minusAssign(number: Int) = accept(getNonNullValue() - number)
+operator fun BehaviorRelay<Int>.timesAssign(number: Int) = accept(getNonNullValue() * number)
+operator fun BehaviorRelay<Int>.divAssign(number: Int) = accept(getNonNullValue() / number)

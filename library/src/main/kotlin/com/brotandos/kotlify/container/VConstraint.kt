@@ -8,6 +8,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.edit
 import androidx.core.view.children
+import com.brotandos.kotlify.annotation.WidgetContainer
 import com.brotandos.kotlify.common.Air
 import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.CustomSize
@@ -31,11 +32,10 @@ typealias ConstraintMap = MutableMap<
         MutableMap<ConstraintSide, () -> ConstraintTarget>
 >
 
-typealias VConstraintActual = VConstraint<ConstraintLayout>
-
-abstract class VConstraint<V : ConstraintLayout>(
+@WidgetContainer
+abstract class VConstraint<V : ConstraintLayout, LP : ConstraintLayout.LayoutParams>(
         size: LayoutSize
-) : VContainer<V, ConstraintLayout.LayoutParams>(size) {
+) : VContainer<V, LP>(size) {
 
     private val constraints: ConstraintMap = mutableMapOf()
 
@@ -83,9 +83,6 @@ abstract class VConstraint<V : ConstraintLayout>(
         constraintLayoutInits.forEach { it.invoke(constraintSet) }
         constraintSet.applyTo(constraintLayout)
     }
-
-    override fun getChildLayoutParams(width: Int, height: Int): ConstraintLayout.LayoutParams =
-            ConstraintLayout.LayoutParams(width, height)
 
     private fun identifyWidgets(
             sharedPreferences: SharedPreferences,
@@ -234,20 +231,3 @@ class VerticalTarget(
         targetWidget,
         margin
 )
-
-inline fun VRootOwner.vConstraintRoot(
-        activity: ComponentActivity,
-        init: VConstraintActual.() -> Unit
-): VRoot<VConstraintActual> {
-    val vContainer = object : VConstraintActual(Air) {
-        override fun createView(context: Context): ConstraintLayout = ConstraintLayout(context)
-    }
-    val vNewRoot = VRoot<VConstraintActual>(vContainer)
-    vContainer.init()
-    val view = vContainer.buildWidget(activity, KotlifyContext(), KotlifyInternals.rootPath)
-    activity.setContentView(view)
-    vNewRoot.disposeOnViewDestroyed(activity)
-    this.vRoot?.clearObservers(activity)
-    this.vRoot = vNewRoot
-    return vNewRoot
-}

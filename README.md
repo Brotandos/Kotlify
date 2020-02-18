@@ -5,27 +5,29 @@
 
 ### MINOR TODO
 * Fix bottom sheet dialog on orientation changed (wrong width and height)
-* VEditable
+* Fix resizing of vItems for VRecycler
 * VTextField
 * Add guidlines and barriers to VConstraint
-* VPermission
-* Add typealiases for widget elements and containers
 * Replace LinearLayout with LinearLayoutCompat
+* Generate itself classes for WidgetElement realizations
+* VRecycler pagination
+* Loading button
+* Use sealed classes for styles instead of lambda
 
 ### MAJOR TODO
-* VButton (MaterialButton is still in alpha)
 * Implement toolbar badges
+* Menu for BottomNavigationView and DrawerLayout
 * Implement menu for drawer and bottomNavView
 * Navigating to another fragment, on view with 'to' prop clicked
 * Make drawable's dsl to set ripple or color effect reactive
-* Loading button
 * Light and dark themes for views
 * VAutocomplete, VCheckbox, VRadio
-* VRecycler pagination
 * Get image and video from camera
 * Get image and video from gallery
 * Splash screen with permissions requirement
-* Find way to not pass LayoutParams to generic of VContainer
+* Learn more about Exceptions
+* Use AppCompat realizations of views instead (for example LinearLayoutCompat, AppCompatImageView etc.) (???)
+* VPermission (use TedPermission)
 
 ### DONE
 * ~~Implement view sizes~~
@@ -38,6 +40,9 @@
 * ~~Implement recyclerview's several viewTypes~~
 * ~~VRelative~~
 * ~~VHorizontal and VVertical~~
+* ~~VEdit~~
+* ~~Generating itself classes for WidgetContainers~~
+* ~~VButton (MaterialButton is still in alpha)~~
 
 ### Thanks to
-* [Vuetify library for inspiration](vuetifyjs.com)
+* [Vuetify library for inspiration](https://vuetifyjs.com)
