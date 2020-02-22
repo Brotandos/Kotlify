@@ -3,7 +3,6 @@ package com.brotandos.kotlify.sandbox
 import android.graphics.Color
 import android.view.Gravity
 import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
@@ -27,12 +26,14 @@ class TestingViewModel : ViewModel(), VRootOwner {
     private val isLoading2 = BehaviorRelay.createDefault(false)
     private val isDialog = BehaviorRelay.createDefault(false)
     private val isBottomDialog = BehaviorRelay.createDefault(false)
-    private val listMediator = VRecycler.Mediator().also { it.addItems(listOf(
-            Number(1),
-            Text("a"),
-            Text("b"),
-            Number(2)
-    )) }
+    private val listMediator = VRecycler.Mediator().also {
+        it.addItems(listOf(
+                Number(1),
+                Text("a"),
+                Text("b"),
+                Number(2)
+        ))
+    }
     private val isBottomSheetButtonVisible = BehaviorRelay.createDefault(false)
 
     override var vRoot: VRoot<*>? = null
@@ -102,7 +103,6 @@ class TestingViewModel : ViewModel(), VRootOwner {
                 title = "Hello, World!"
 
                 vVertical(Air) {
-                    initView { orientation = LinearLayout.VERTICAL }
                     vCustom<Button>()
                     vCustom<Button>()
                 }
@@ -113,7 +113,6 @@ class TestingViewModel : ViewModel(), VRootOwner {
                 title = "Hello, World!"
 
                 vVertical(Air) {
-                    initView { orientation = LinearLayout.VERTICAL }
                     vCustom<Button> {
                         onClick { isBottomDialog.accept(false) }
                     }

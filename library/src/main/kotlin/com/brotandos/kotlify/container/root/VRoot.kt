@@ -33,17 +33,6 @@ class VRoot<T : VContainer<*, *>>(
     fun addToComposite(disposable: Disposable) = vContainer.addToComposite(disposable)
 }
 
-/*inline fun <V : ViewGroup, LP : ViewGroup.LayoutParams, reified T : VContainer<V, LP>> Activity.vRoot(
-        init: T.() -> Unit
-): VRoot<T> {
-    val vContainer = KotlifyInternals.initiateWidgetContainer(Air, T::class.java)
-    val vRoot = VRoot(vContainer)
-    vContainer.init()
-    val view = vContainer.buildWidget(this, KotlifyContext(), KotlifyInternals.rootPath)
-    setContentView(view)
-    return vRoot
-}*/
-
 inline fun <reified T : VContainer<*, *>> VRootOwner.vRoot(
         activity: ComponentActivity,
         init: T.() -> Unit

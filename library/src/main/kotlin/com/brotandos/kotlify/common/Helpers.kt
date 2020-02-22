@@ -54,5 +54,7 @@ fun Activity.browse(url: String) {
     startActivity(intent)
 }
 
-inline fun <reified T : Activity> T.restart() =
-        startActivity<T>(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+inline fun <reified T : Activity> T.restart() {
+    finish()
+    startActivity<T>()
+}
