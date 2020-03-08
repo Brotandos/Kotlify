@@ -61,14 +61,14 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
 
-    implementation "androidx.fragment:fragment-ktx:1.2.1"
+    implementation "androidx.fragment:fragment-ktx:1.2.2"
     implementation "androidx.appcompat:appcompat:1.1.0"
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
     /**
      * Need for MaterialButton and RecyclerView
      * */
-    implementation 'com.google.android.material:material:1.2.0-alpha04'
+    implementation 'com.google.android.material:material:1.2.0-alpha05'
 
     /**
      * Need for CircularProgressDrawable

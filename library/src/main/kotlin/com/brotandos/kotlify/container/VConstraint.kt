@@ -92,21 +92,8 @@ abstract class VConstraint<V : ConstraintLayout, LP : ConstraintLayout.LayoutPar
                 .filterIsInstance<WidgetElement<*>>()
                 .filter { it.id == ID_NOT_SET }
                 .forEachIndexed { index, element ->
-                    val key = element.getIdKey()
-                    element.id = sharedPreferences
-                            .getInt(element.getIdKey(), ID_NOT_SET)
-                            .takeIf { it != ID_NOT_SET }
-                            ?: generateId(key, sharedPreferences)
-                    childViews[index].id = element.id
+                    childViews[index].id = element.identify(sharedPreferences)
                 }
-    }
-
-    private fun generateId(key: String, sharedPreferences: SharedPreferences): Int {
-        val id = View.generateViewId()
-        sharedPreferences.edit {
-            putInt(key, id)
-        }
-        return id
     }
 
     fun WidgetElement<*>.startTo(targetGetter: () -> HorizontalTarget) =

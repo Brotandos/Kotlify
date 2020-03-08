@@ -3,25 +3,30 @@ package com.brotandos.kotlify.element
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Parcelable
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.CallSuper
+import androidx.core.content.edit
 import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.KotlifyInternals.NO_GETTER
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.exception.ContextAnonymousException
+import com.brotandos.kotlify.exception.WidgetNotBuiltException
 import com.jakewharton.rxrelay2.BehaviorRelay
 import com.jakewharton.rxrelay2.PublishRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import java.util.concurrent.TimeUnit
 
-const val ID_NOT_SET = -1
+const val ID_NOT_SET = View.NO_ID
 
 private const val ID_KEY_SEPARATOR = "-"
+
+private const val CLASS_NAME = "WidgetElement"
 
 /**
  * TODO List:
@@ -43,7 +48,7 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
      * Must be initialized inside [WidgetElement.buildWidget]
      * TODO implement @InitializesInside(Method) annotation
      * */
-    protected lateinit var packageName: String
+    protected var packageName: String? = null
 
     protected var pathInsideTree: List<Int>? = null
 
@@ -203,7 +208,7 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
     }
 
     /**
-     * Must be initialized before [WidgetElement.build]
+     * Must be initialized before [WidgetElement.build] if inside VConstraint
      * */
     @CallSuper
     @Throws(ContextAnonymousException::class)
@@ -262,7 +267,21 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         actualHeight = builtView.height
     }
 
-    fun getIdKey(): String = buildString {
+    /**
+     * Should be called after [buildWidget] due to init [packageName]
+     * */
+    fun identify(sharedPreferences: SharedPreferences): Int {
+        packageName ?: throw WidgetNotBuiltException("$CLASS_NAME#identify")
+        val key = getIdKey()
+        id = sharedPreferences
+                .getInt(key, ID_NOT_SET)
+                .takeIf { it != ID_NOT_SET }
+                ?: generateId(key, sharedPreferences)
+        return id
+    }
+
+    private fun getIdKey(): String = buildString {
+        packageName ?: throw WidgetNotBuiltException("$CLASS_NAME#getIdKey")
         append(packageName)
         append(ID_KEY_SEPARATOR)
         append(vRootOwnerName)
@@ -272,11 +291,45 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         }
     }
 
+    fun identify(
+            sharedPreferences: SharedPreferences,
+            packageName: String,
+            vRootOwnerName: String,
+            pathInTree: List<Int>
+    ): Int {
+        val key = getIdKey(packageName, vRootOwnerName, pathInTree)
+        id = sharedPreferences
+                .getInt(key, ID_NOT_SET)
+                .takeIf { it != ID_NOT_SET }
+                ?: generateId(key, sharedPreferences)
+        return id
+    }
+
+    private fun getIdKey(
+            packageName: String,
+            vRootOwnerName: String,
+            pathInTree: List<Int>
+    ): String = buildString {
+        append(packageName)
+        append(ID_KEY_SEPARATOR)
+        append(vRootOwnerName)
+        pathInTree.forEach {
+            append(ID_KEY_SEPARATOR)
+            append(it)
+        }
+    }
+
+    private fun generateId(key: String, sharedPreferences: SharedPreferences): Int {
+        val id = View.generateViewId()
+        sharedPreferences.edit { putInt(key, id) }
+        return id
+    }
+
     inline fun <reified T : Activity> to(vararg parcelables: Pair<String, Parcelable>) {
         activityToNavigateOnClick = T::class.java
     }
 
-    protected val Context.density get() = resources.displayMetrics.density.toInt()
+    protected val Context.density get() = resources.displayMetrics.density
 
     private fun getClickRelayInstance() =
             clickRelay ?: PublishRelay.create<Unit>().also { clickRelay = it }

@@ -2,8 +2,10 @@ package com.brotandos.kotlify.common
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Parcelable
+import androidx.annotation.ColorInt
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
@@ -29,6 +31,11 @@ inline fun <reified VM : ViewModel> FragmentActivity.viewModels(): Lazy<VM> =
 
             override fun isInitialized(): Boolean = cached != null
         }
+
+fun getTint(@ColorInt color: Int) = ColorStateList(
+        Constants.DRAWABLE_ALL_STATES,
+        intArrayOf(color, color, color, color)
+)
 
 inline fun <reified T : Activity> Activity.startActivity(flags: Int = NO_INTENT_FLAGS) {
     val intent = Intent(this, T::class.java)
@@ -57,4 +64,9 @@ fun Activity.browse(url: String) {
 inline fun <reified T : Activity> T.restart() {
     finish()
     startActivity<T>()
+}
+
+inline fun <reified T : Activity> T.clearAndRestart() {
+    finish()
+    startActivity<T>(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
 }

@@ -1,5 +1,6 @@
 package com.brotandos.kotlify.element
 
+import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.widget.TextView
 import androidx.annotation.ColorInt
@@ -27,6 +28,8 @@ abstract class VLabel<V : TextView>(size: LayoutSize) : WidgetElement<V>(size) {
 
     var styles: Array<V.() -> Unit>? = null
 
+    var textColors: ColorStateList? = null
+
     @ColorInt
     var textColor: Int? = null
 
@@ -37,7 +40,7 @@ abstract class VLabel<V : TextView>(size: LayoutSize) : WidgetElement<V>(size) {
         typeface?.let(view::setTypeface)
         textSize?.let(view::setTextSize)
         gravity?.let(view::setGravity)
-        textColor?.let(view::setTextColor)
+        textColors?.let(view::setTextColor) ?: textColor?.let(view::setTextColor)
         isTextSelectable?.let(view::setTextIsSelectable)
         styles?.forEach { style -> view.style() }
     }

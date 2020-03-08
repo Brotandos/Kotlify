@@ -17,7 +17,9 @@ object KotlifyInternals {
 
     const val IDS_CACHE_FILE_NAME = "KotlifyIdsCache"
 
-    val rootPath = listOf(0)
+    const val FIRST_CHILD_ADDRESS = 0
+
+    val rootPath = listOf(FIRST_CHILD_ADDRESS)
 
     fun <T> noGetter(): T = throw NoGetterException
 
@@ -81,7 +83,7 @@ fun <T>BehaviorRelay<T>.getNonNullValue() = value
 
 fun <T>BehaviorRelay<T>.reAccept() = accept(getNonNullValue())
 
-fun BehaviorRelay<Boolean>.toggleValue() = accept(getNonNullValue())
+fun BehaviorRelay<Boolean>.toggleValue() = accept(!getNonNullValue())
 
 operator fun BehaviorRelay<Int>.plusAssign(number: Int) = accept(getNonNullValue() + number)
 operator fun BehaviorRelay<Int>.minusAssign(number: Int) = accept(getNonNullValue() - number)

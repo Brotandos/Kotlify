@@ -13,7 +13,9 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.children
 import androidx.core.view.setPadding
@@ -60,6 +62,9 @@ abstract class VToolbar<V : Toolbar, LP : Toolbar.LayoutParams>(
     var backgroundRes: Int? = null
 
     var titleTextColor: Int? = null
+
+    @ColorInt
+    var iconColor: Int? = null
 
     override fun initSubscriptions(view: V?) {
         super.initSubscriptions(view)
@@ -122,7 +127,7 @@ abstract class VToolbar<V : Toolbar, LP : Toolbar.LayoutParams>(
         navigationPair = iconResId to onNavigationClick
     }
 
-    class VMenu(private val title: String, private val addToComposite: Disposable.() -> Unit) {
+    inner class VMenu(private val title: String, private val addToComposite: Disposable.() -> Unit) {
 
         var isLoading: BehaviorRelay<Boolean>? = null
 
@@ -138,8 +143,9 @@ abstract class VToolbar<V : Toolbar, LP : Toolbar.LayoutParams>(
         fun inflate(menu: Menu, context: Context) {
             val menuItem = menu.add(title)
 
-            val imageView: ImageView? = ImageView(context).apply {
+            val imageView: ImageView? = AppCompatImageView(context).apply {
                 iconResId?.let(::setImageResource)
+                iconColor?.let(::setColorFilter)
                 val typedValue = TypedValue()
                 context.theme.resolveAttribute(
                         android.R.attr.selectableItemBackgroundBorderless,

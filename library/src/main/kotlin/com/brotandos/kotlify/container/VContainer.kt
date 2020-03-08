@@ -2,8 +2,11 @@ package com.brotandos.kotlify.container
 
 import android.content.Context
 import android.util.DisplayMetrics
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.LayoutRes
+import androidx.core.content.ContextCompat.getSystemService
 import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
@@ -66,7 +69,7 @@ VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
             throw IllegalStateException("$parent isn't parent of $element. Check lparams function attaching for validity")
 
         element.layoutInit = {
-            val density = context.resources.displayMetrics.density.toInt()
+            val density = context.density
             val (widgetWidth, widgetHeight) = size.getValuePair(density)
             val instance = getChildLayoutParams(widgetWidth, widgetHeight)
             instance.init()
@@ -106,6 +109,28 @@ VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
         val vContainer = object : VContainer<V, LP>(size) {
             override fun createView(context: Context): V =
                 KotlifyInternals.initiateView(context, V::class.java)
+
+            override fun getChildLayoutParams(width: Int, height: Int): LP {
+                val constructor = LP::class.java.getConstructor(width::class.java, height::class.java)
+                return constructor.newInstance(width, height)
+            }
+        }
+        inlineChildren += vContainer
+        vContainer.init()
+        return vContainer
+    }
+
+    inline fun <reified V : ViewGroup, reified LP : ViewGroup.LayoutParams> vContainer(
+            size: LayoutSize,
+            @LayoutRes layoutId: Int,
+            init: VContainer<V, LP>.() -> Unit
+    ): VContainer<V, LP> {
+        val vContainer = object : VContainer<V, LP>(size) {
+            override fun createView(context: Context): V {
+                val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+                return inflater.inflate(layoutId, null, false) as? V
+                        ?: throw IllegalStateException("Cannot cast view to type of V")
+            }
 
             override fun getChildLayoutParams(width: Int, height: Int): LP {
                 val constructor = LP::class.java.getConstructor(width::class.java, height::class.java)

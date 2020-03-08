@@ -1,5 +1,6 @@
 package com.brotandos.kotlify.container
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
@@ -43,13 +44,18 @@ interface WidgetContainer {
     val CustomLength.fire: LayoutSize
         get() = CustomSize(this, MatchParent)
 
-    // FIXME real height smaller than from xml
+    val CustomLength.square: LayoutSize
+        get() = CustomSize(this, this)
+
+    val Activity.density: Float
+        get() = resources.displayMetrics.density
+
     val Context.actionBarSize: LayoutSize
         get() {
             val typedValue = TypedValue()
             theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)
                     .takeIf { it }
-                    ?: return 70.dp.water
+                    ?: return 50.dp.water
             val height = TypedValue.complexToFloat(typedValue.data).toInt()
             return height.dp.water
         }
