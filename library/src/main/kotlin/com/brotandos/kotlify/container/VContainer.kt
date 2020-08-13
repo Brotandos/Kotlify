@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
-import androidx.core.content.ContextCompat.getSystemService
 import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
@@ -16,10 +15,8 @@ import com.brotandos.kotlify.container.modal.VDialog
 import com.brotandos.kotlify.element.UiEntity
 import com.brotandos.kotlify.element.WidgetElement
 import io.reactivex.disposables.Disposable
-import kotlin.reflect.full.isSubclassOf
 
-abstract class
-VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
+abstract class VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
     size: LayoutSize
 ) : WidgetElement<V>(size), WidgetContainer {
 
