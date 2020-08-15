@@ -1,7 +1,6 @@
 package com.brotandos.kotlify.container
 
 import android.widget.FrameLayout
-import android.widget.RelativeLayout
 import com.brotandos.kotlify.annotation.WidgetContainer
 import com.brotandos.kotlify.common.LayoutSize
 

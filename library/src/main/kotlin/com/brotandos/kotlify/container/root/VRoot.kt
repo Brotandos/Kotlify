@@ -31,6 +31,8 @@ class VRoot<T : VContainer<*, *>>(
     }
 
     fun addToComposite(disposable: Disposable) = vContainer.addToComposite(disposable)
+
+    fun dispose() = vContainer.dispose()
 }
 
 inline fun <reified T : VContainer<*, *>> VRootOwner.vRoot(
@@ -43,6 +45,10 @@ inline fun <reified T : VContainer<*, *>> VRootOwner.vRoot(
     val view = vContainer.buildWidget(activity, KotlifyContext(), KotlifyInternals.rootPath)
     activity.setContentView(view)
     vNewRoot.disposeOnViewDestroyed(activity)
+    this.vRoot?.run {
+        dispose()
+        clearObservers(activity)
+    }
     this.vRoot?.clearObservers(activity)
     this.vRoot = vNewRoot
     return vNewRoot

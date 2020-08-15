@@ -2,6 +2,7 @@
 * [Статья, на основе которого будет писаться биндинги](https://habr.com/ru/company/mobileup/blog/342850/)
 * [Explanation of RecyclerView](https://ziginsider.github.io/RecyclerView/)
 * [ContourLayout](https://github.com/cashapp/contour)
+* [SaveState ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel-savedstate)
 
 ### MINOR TODO
 * Fix bottom sheet dialog on orientation changed (wrong width and height)
@@ -13,6 +14,7 @@
 * FIX RxPermissions
 * Move throttleClick to arguments of onClick (???)
 * FIX wrong casting density (see: LayoutSize)
+* Make WidgetContainer interface generatable for fixing boilerplate functions like vLabel, vFrame etc.
 
 ### MAJOR TODO
 * Identify first
