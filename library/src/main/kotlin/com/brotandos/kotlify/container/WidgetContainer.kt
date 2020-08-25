@@ -6,12 +6,7 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.Gravity
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.ToggleButton
+import android.widget.*
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.Toolbar
 import androidx.cardview.widget.CardView
@@ -20,14 +15,8 @@ import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.CustomSize
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.common.MatchParent
-import com.brotandos.kotlify.element.ToggleOption
-import com.brotandos.kotlify.element.VButton
-import com.brotandos.kotlify.element.VEdit
-import com.brotandos.kotlify.element.VImage
-import com.brotandos.kotlify.element.VLabel
-import com.brotandos.kotlify.element.VSimpleToggle
-import com.brotandos.kotlify.element.VToggleGroup
-import com.brotandos.kotlify.element.WidgetElement
+import com.brotandos.kotlify.element.*
+import com.brotandos.kotlify.element.VSimpleSpinner
 import com.brotandos.kotlify.element.list.LayoutManager
 import com.brotandos.kotlify.element.list.VRecycler
 import com.google.android.material.button.MaterialButton
@@ -279,4 +268,21 @@ interface WidgetContainer {
 
     val singleLine: TextView.() -> Unit
         get() = { isSingleLine = true }
+}
+
+inline fun <reified T : VSimpleSpinner.Option> WidgetContainer.vSimpleSpinner(
+    size: LayoutSize,
+    init: VSimpleSpinner<T, Spinner>.() -> Unit
+): VSimpleSpinner<T, Spinner> {
+    val options = T::class.nestedClasses.map {
+        val instance = it.objectInstance ?: throw IllegalStateException("Nested classes must be object instance")
+        return@map instance as? T ?: throw IllegalStateException("${instance::class.qualifiedName} must implement ${VSimpleSpinner.Option::class.qualifiedName}")
+    }
+    return object : VSimpleSpinner<T, Spinner>(size) {
+        override fun createView(context: Context): Spinner = Spinner(context)
+    }.also {
+        accept(it)
+        it.init()
+        it.setOptions(options)
+    }
 }

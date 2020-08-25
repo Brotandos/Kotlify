@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.drawable.Drawable
 import android.os.Parcelable
 import android.view.View
 import android.view.ViewGroup
@@ -117,6 +118,14 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
             isEnabledRelay = value
         }
 
+    private var backgroundRelay: BehaviorRelay<Drawable>? = null
+    var background: BehaviorRelay<Drawable>
+        @Deprecated(NO_GETTER, level = DeprecationLevel.ERROR)
+        get() = KotlifyInternals.noGetter()
+        set(value) {
+            backgroundRelay = value
+        }
+
     var clickRelay: PublishRelay<Unit>? = null
         set(value) {
             if (field != null) throw IllegalStateException("You can assign field of clickRelay only once")
@@ -171,6 +180,11 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
         isEnabledRelay
                 ?.observeOn(AndroidSchedulers.mainThread())
                 ?.subscribe { view?.isEnabled = it }
+                ?.untilLifecycleDestroy()
+
+        backgroundRelay
+                ?.observeOn(AndroidSchedulers.mainThread())
+                ?.subscribe { view?.background = it }
                 ?.untilLifecycleDestroy()
     }
 

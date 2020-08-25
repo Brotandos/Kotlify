@@ -3,6 +3,7 @@
 * [Explanation of RecyclerView](https://ziginsider.github.io/RecyclerView/)
 * [ContourLayout](https://github.com/cashapp/contour)
 * [SaveState ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel-savedstate)
+* [DSLint - A lightweight Android linter for Kotlin DSL aimed to solve the problem of verifying mandatory DSL attributes at compile time.](https://github.com/ironSource/dslint)
 
 ### MINOR TODO
 * Fix bottom sheet dialog on orientation changed (wrong width and height)

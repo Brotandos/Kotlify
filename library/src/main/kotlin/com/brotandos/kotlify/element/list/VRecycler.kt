@@ -120,7 +120,7 @@ class VRecycler(
             val item = mediator.list[position]
             val vElement = itemsMarkupMap[item::class]
                     ?.invoke(item)
-                    ?: throw RuntimeException("vItem is not set")
+                    ?: throw RuntimeException("vItem is not set for ${item::class.qualifiedName}")
             // TODO use custom exception
             val path = pathInsideTree
                     ?: throw RuntimeException("WidgetContainer#buildWidget method must be called before to initialize pathInsideTree")
