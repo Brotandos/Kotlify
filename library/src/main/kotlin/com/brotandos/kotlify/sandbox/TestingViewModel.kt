@@ -4,19 +4,25 @@ import android.graphics.Color
 import android.view.Gravity
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.brotandos.kotlify.R
 import com.brotandos.kotlify.common.Air
+import com.brotandos.kotlify.common.Earth
 import com.brotandos.kotlify.common.Water
 import com.brotandos.kotlify.common.toggleValue
 import com.brotandos.kotlify.container.VVertical
 import com.brotandos.kotlify.container.root.VRoot
 import com.brotandos.kotlify.container.root.VRootOwner
 import com.brotandos.kotlify.container.root.vRoot
+import com.brotandos.kotlify.container.vSimpleSpinner
+import com.brotandos.kotlify.element.VSimpleSpinner
 import com.brotandos.kotlify.element.list.VRecycler
 import com.jakewharton.rxrelay2.BehaviorRelay
+import com.jakewharton.rxrelay2.PublishRelay
+import io.reactivex.android.schedulers.AndroidSchedulers
 
 class TestingViewModel : ViewModel(), VRootOwner {
 
@@ -26,6 +32,7 @@ class TestingViewModel : ViewModel(), VRootOwner {
     private val isLoading2 = BehaviorRelay.createDefault(false)
     private val isDialog = BehaviorRelay.createDefault(false)
     private val isBottomDialog = BehaviorRelay.createDefault(false)
+    private val selection = PublishRelay.create<Selection>()
     private val listMediator = VRecycler.Mediator().also {
         it.addItems(listOf(
                 Number(1),
@@ -98,6 +105,10 @@ class TestingViewModel : ViewModel(), VRootOwner {
                 }
             }
 
+            vSimpleSpinner<Selection>(Earth) {
+                selectedOption = selection
+            }
+
             vDialog {
                 isAppeared = isDialog
                 title = "Hello, World!"
@@ -120,8 +131,18 @@ class TestingViewModel : ViewModel(), VRootOwner {
                 }
             }
         }
+        selection
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { Toast.makeText(activity, it.getName(), Toast.LENGTH_SHORT).show() }
+            .untilLifecycleDestroy()
     }
 
     class Number(val value: Int) : VRecycler.Item
     class Text(val value: String) : VRecycler.Item
+
+    sealed class Selection : VSimpleSpinner.Option {
+        object Option1 : Selection()
+        object Option2 : Selection()
+        object Option3 : Selection()
+    }
 }
