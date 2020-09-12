@@ -171,10 +171,12 @@ class VRecycler(
 
     interface Item
 
-    class Mediator {
+    class Mediator(items: List<Item> = listOf()) {
+
+        constructor(vararg items: Item) : this(items.toMutableList())
 
         // TODO check for thread safety
-        private val mutableList = mutableListOf<Item>()
+        private val mutableList: MutableList<Item> = items.toMutableList()
         val list: List<Item> = mutableList
 
         private val actionRelay = PublishRelay.create<RecyclerItemsAction<Item>>()

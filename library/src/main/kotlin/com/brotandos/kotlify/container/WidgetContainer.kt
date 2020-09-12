@@ -53,7 +53,7 @@ interface WidgetContainer {
 
     fun vToolbar(
             size: LayoutSize,
-            init: VToolbar<Toolbar, Toolbar.LayoutParams>.() -> Unit
+            init: (VToolbar<Toolbar, Toolbar.LayoutParams>.() -> Unit)? = null
     ): VToolbar<Toolbar, Toolbar.LayoutParams> =
             object : VToolbar<Toolbar, Toolbar.LayoutParams>(size) {
                 override fun createView(context: Context): Toolbar = Toolbar(context)
@@ -61,26 +61,26 @@ interface WidgetContainer {
                         Toolbar.LayoutParams(width, height)
             }
                     .also(::accept)
-                    .apply(init)
+                    .apply { init?.invoke(this) }
 
     fun vLabel(
             size: LayoutSize,
-            init: VLabel<TextView>.() -> Unit
+            init: (VLabel<TextView>.() -> Unit)? = null
     ): VLabel<TextView> = object : VLabel<TextView>(size) {
         override fun createView(context: Context): TextView = TextView(context)
-    }.also(::accept).apply(init)
+    }.also(::accept).apply { init?.invoke(this) }
 
     fun vLabel(
             size: LayoutSize,
             vararg styles: TextView.() -> Unit,
-            init: VLabel<TextView>.() -> Unit
+            init: (VLabel<TextView>.() -> Unit)? = null
     ): VLabel<TextView> {
         val vLabel = object : VLabel<TextView>(size) {
             override fun createView(context: Context): TextView = TextView(context)
         }
         accept(vLabel)
         vLabel.styles = arrayOf(*styles)
-        vLabel.init()
+        init?.invoke(vLabel)
         return vLabel
     }
 
@@ -88,14 +88,14 @@ interface WidgetContainer {
             size: LayoutSize,
             @StringRes textResId: Int,
             vararg styles: TextView.() -> Unit,
-            init: VLabel<TextView>.() -> Unit
+            init: (VLabel<TextView>.() -> Unit)? = null
     ): VLabel<TextView> {
         val vLabel = object : VLabel<TextView>(size) {
             override fun createView(context: Context): TextView = TextView(context)
         }.also(::accept)
         vLabel.textResId = textResId
         vLabel.styles = arrayOf(*styles)
-        vLabel.init()
+        init?.invoke(vLabel)
         return vLabel
     }
 
@@ -103,70 +103,70 @@ interface WidgetContainer {
             size: LayoutSize,
             text: String,
             vararg styles: TextView.() -> Unit,
-            init: VLabel<TextView>.() -> Unit
+            init: (VLabel<TextView>.() -> Unit)? = null
     ): VLabel<TextView> {
         val vLabel = object : VLabel<TextView>(size) {
             override fun createView(context: Context): TextView = TextView(context)
         }.also(::accept)
         vLabel.text = text
         vLabel.styles = arrayOf(*styles)
-        vLabel.init()
+        init?.invoke(vLabel)
         return vLabel
     }
 
     fun vEdit(
             size: LayoutSize,
             vararg styles: EditText.() -> Unit,
-            init: VEdit<EditText>.() -> Unit
+            init: (VEdit<EditText>.() -> Unit)? = null
     ): VEdit<EditText> {
         val vEdit = object : VEdit<EditText>(size) {
             override fun createView(context: Context): EditText = EditText(context)
         }.also(::accept)
         vEdit.styles = arrayOf(*styles)
-        vEdit.init()
+        init?.invoke(vEdit)
         return vEdit
     }
 
     fun vButton(
             size: LayoutSize,
-            init: VButton<MaterialButton>.() -> Unit
+            init: (VButton<MaterialButton>.() -> Unit)? = null
     ): VButton<MaterialButton> = object : VButton<MaterialButton>(size) {
         override fun createView(context: Context): MaterialButton = MaterialButton(context)
-    }.also(::accept).apply(init)
+    }.also(::accept).apply { init?.invoke(this) }
 
     fun vList(
             size: LayoutSize,
             mediator: VRecycler.Mediator,
-            init: VRecycler.() -> Unit
+            init: (VRecycler.() -> Unit)? = null
     ): VRecycler = VRecycler(mediator = mediator, layoutManager = LayoutManager.Linear, size = size)
             .also(::accept)
-            .apply(init)
+            .apply { init?.invoke(this) }
 
     fun vGrid(
             size: LayoutSize,
             items: BehaviorRelay<List<VRecycler.Item>>,
-            init: VRecycler.() -> Unit
+            init: (VRecycler.() -> Unit)? = null
     ): VRecycler = TODO("not implemented")
 
     fun vLinear(
             size: LayoutSize,
-            init: VContainer<LinearLayout, LinearLayout.LayoutParams>.() -> Unit
+            init: (VContainer<LinearLayout, LinearLayout.LayoutParams>.() -> Unit)? = null
     ): VLinear<LinearLayout, LinearLayout.LayoutParams> =
             object : VLinear<LinearLayout, LinearLayout.LayoutParams>(size) {
                 override fun createView(context: Context): LinearLayout = LinearLayout(context)
 
                 override fun getChildLayoutParams(width: Int, height: Int): LinearLayout.LayoutParams =
                         LinearLayout.LayoutParams(width, height)
-            }.also(::accept).apply(init)
+            }.also(::accept).apply { init?.invoke(this) }
 
     fun vVertical(
             size: LayoutSize,
-            init: VContainer<LinearLayout, LinearLayout.LayoutParams>.() -> Unit
-    ) = VVertical(size).also(::accept).apply(init)
+            init: (VContainer<LinearLayout, LinearLayout.LayoutParams>.() -> Unit)? = null
+    ) = VVertical(size).also(::accept).apply { init?.invoke(this) }
 
     fun vCard(
             size: LayoutSize,
-            init: VCard<CardView, FrameLayout.LayoutParams>.() -> Unit
+            init: (VCard<CardView, FrameLayout.LayoutParams>.() -> Unit)? = null
     ): VCard<CardView, FrameLayout.LayoutParams> =
             object : VCard<CardView, FrameLayout.LayoutParams>(size) {
                 override fun createView(context: Context): CardView = CardView(context)
@@ -175,54 +175,61 @@ interface WidgetContainer {
                         FrameLayout.LayoutParams(width, height)
             }
                     .also(::accept)
-                    .apply(init)
+                    .apply { init?.invoke(this) }
 
     fun vConstraint(
             size: LayoutSize,
-            init: VConstraintItself.() -> Unit
+            init: (VConstraintItself.() -> Unit)? = null
     ): VConstraintItself {
         val vConstraint = VConstraintItself(Air)
         accept(vConstraint)
-        vConstraint.init()
+        init?.invoke(vConstraint)
         return vConstraint
     }
 
-    fun vImage(size: LayoutSize, resId: Int, init: VImage<ImageView>.() -> Unit): VImage<ImageView> {
+    fun vImage(
+        size: LayoutSize,
+        resId: Int,
+        init: (VImage<ImageView>.() -> Unit)? = null
+    ): VImage<ImageView> {
         val vImage = object : VImage<ImageView>(size) {
             override fun createView(context: Context): ImageView = ImageView(context)
         }.also(::accept)
         vImage.imageResId = BehaviorRelay.createDefault(resId)
-        vImage.init()
+        init?.invoke(vImage)
         return vImage
     }
 
-    fun vImage(size: LayoutSize, init: VImage<ImageView>.() -> Unit): VImage<ImageView> =
+    fun vImage(
+        size: LayoutSize,
+        init: (VImage<ImageView>.() -> Unit)? = null
+    ): VImage<ImageView> =
             object : VImage<ImageView>(size) {
                 override fun createView(context: Context): ImageView = ImageView(context)
-            }.also(::accept).apply(init)
+            }.also(::accept).apply { init?.invoke(this) }
 
     fun <T : ToggleOption> vToggleGroup(
             size: LayoutSize,
             selectedOption: BehaviorRelay<T>,
-            init: VToggleGroup<T>.() -> Unit
+            init: (VToggleGroup<T>.() -> Unit)? = null
     ): VToggleGroup<T> {
         val vToggleGroup = VToggleGroup<T>(size).also(::accept)
         vToggleGroup.selectedOption = selectedOption
-        vToggleGroup.init()
+        init?.invoke(vToggleGroup)
         return vToggleGroup
     }
 
     fun <T : ToggleOption> T.vSimpleToggle(
             size: LayoutSize,
             selectedOption: BehaviorRelay<T>,
-            init: VSimpleToggle<T, ToggleButton>.() -> Unit
+            init: (VSimpleToggle<T, ToggleButton>.() -> Unit)? = null
     ): VSimpleToggle<T, ToggleButton> {
         val vSimpleToggle = object : VSimpleToggle<T, ToggleButton>(size) {
             override fun createView(context: Context): ToggleButton = ToggleButton(context)
         }.also(::accept)
         vSimpleToggle.model = this
         vSimpleToggle.selectedOption = selectedOption
-        vSimpleToggle.init()
+        init?.invoke(vSimpleToggle)
         return vSimpleToggle
     }
 

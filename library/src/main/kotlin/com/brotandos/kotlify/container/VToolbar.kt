@@ -113,13 +113,13 @@ abstract class VToolbar<V : Toolbar, LP : Toolbar.LayoutParams>(
             title: String,
             iconResId: Int? = null,
             isLoading: BehaviorRelay<Boolean>? = null,
-            init: VMenu.() -> Unit
+            init: (VMenu.() -> Unit)? = null
     ) {
         val vMenu =
                 VMenu(title) { untilLifecycleDestroy() }
         vMenu.iconResId = iconResId
         vMenu.isLoading = isLoading
-        vMenu.init()
+        init?.invoke(vMenu)
         menuItems += vMenu
     }
 

@@ -78,11 +78,11 @@ class VToggleGroup<T : ToggleOption>(
 
     fun T.vToggle(
             size: LayoutSize,
-            init: VButton<MaterialButton>.() -> Unit
+            init: (VButton<MaterialButton>.() -> Unit)? = null
     ): VButton<MaterialButton> {
         val vToggle = object : VButton<MaterialButton>(size) {
             override fun createView(context: Context): MaterialButton = MaterialButton(context)
-        }.also(init)
+        }.apply { init?.invoke(this) }
         disposables.add(vToggle)
         children += this to vToggle
         return vToggle

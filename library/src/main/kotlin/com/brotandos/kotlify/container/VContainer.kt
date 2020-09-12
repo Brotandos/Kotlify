@@ -144,16 +144,16 @@ abstract class VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
     }
 
     @Throws(RuntimeException::class)
-    fun vDialog(init: VDialog.() -> Unit): Disposable {
+    fun vDialog(init: (VDialog.() -> Unit)? = null): Disposable {
         val vDialog = VDialog()
-        vDialog.init()
+        init?.invoke(vDialog)
         children.add(vDialog)
         return vDialog
     }
 
-    fun vBottomSheetDialog(init: VBottomSheetDialog.() -> Unit): Disposable {
+    fun vBottomSheetDialog(init: (VBottomSheetDialog.() -> Unit)? = null): Disposable {
         val vBottomSheetDialog = VBottomSheetDialog()
-        vBottomSheetDialog.init()
+        init?.invoke(vBottomSheetDialog)
         children.add(vBottomSheetDialog)
         return vBottomSheetDialog
     }
