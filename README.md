@@ -14,7 +14,6 @@
 * SharedPreferences interfaces like Retrofit's services
 * FIX RxPermissions
 * Move throttleClick to arguments of onClick (???)
-* FIX wrong casting density (see: LayoutSize)
 * Make WidgetContainer interface generatable for fixing boilerplate functions like vLabel, vFrame etc.
 
 ### MAJOR TODO
@@ -34,6 +33,7 @@
 * SecuredPreferences
 * Research about [RxActivityResult](https://github.com/VictorAlbertos/RxActivityResult)
 * Generate to standard architectures
+* vCustom with View as generic acts like match_parent for both width and height. Even if Earth layout size set
 
 ### Plan to v0.1.0
 * Rename project to Kotlandro
@@ -59,6 +59,7 @@
 * ~~VButton (MaterialButton is still in alpha)~~
 * ~~Loading button~~
 * ~~Menu for DrawerLayout~~
+* ~~FIX wrong casting density (see: LayoutSize)~~
 
 ### Thanks to
 * [Vuetify library for inspiration](https://vuetifyjs.com)

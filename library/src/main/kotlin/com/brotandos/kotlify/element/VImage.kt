@@ -16,6 +16,8 @@ abstract class VImage<V : ImageView>(size: LayoutSize) : WidgetElement<V>(size) 
 
     var imageResId: BehaviorRelay<Int>? = null
 
+    var imageDrawable: BehaviorRelay<Drawable>? = null
+
     var imageUrlRelay: BehaviorRelay<String>? = null
 
     // TODO recycle after each and on dispose
@@ -26,6 +28,17 @@ abstract class VImage<V : ImageView>(size: LayoutSize) : WidgetElement<V>(size) 
         imageResId
                 ?.observeOn(AndroidSchedulers.mainThread())
                 ?.subscribe { view?.setImageResource(it) }
+                ?.untilLifecycleDestroy()
+
+        imageDrawable
+                ?.observeOn(AndroidSchedulers.mainThread())
+                ?.subscribe { drawable ->
+                    view?.setImageDrawable(drawable)
+                    // Warning! Don't use Glide here for resetting image
+                    // После каждого изменения размеров drawable,
+                    // он показывает изображение с меньшим размером, чем предполагалось
+                    // https://github.com/bumptech/glide/issues/1591
+                }
                 ?.untilLifecycleDestroy()
 
         imageBitmap
@@ -39,12 +52,11 @@ abstract class VImage<V : ImageView>(size: LayoutSize) : WidgetElement<V>(size) 
         imageUrlRelay
                 ?.observeOn(AndroidSchedulers.mainThread())
                 ?.subscribe { url ->
-                    view?.let { imageView ->
-                        Glide.with(imageView.context)
-                                .load(url)
-                                .also { glideInit?.invoke(it) }
-                                .into(imageView)
-                    }
+                    view ?: return@subscribe
+                    Glide.with(view.context)
+                            .load(url)
+                            .also { glideInit?.invoke(it) }
+                            .into(view)
                 }
                 ?.untilLifecycleDestroy()
     }
