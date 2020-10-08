@@ -1,6 +1,6 @@
 package com.brotandos.kotlify.processor
 
-import com.brotandos.kotlify.annotation.WidgetContainer
+import com.brotandos.kotlify.annotation.GenerateItself
 import com.google.auto.service.AutoService
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -30,7 +30,7 @@ import javax.lang.model.type.DeclaredType
 class WidgetContainerProcessor : AbstractProcessor() {
 
     override fun getSupportedAnnotationTypes(): MutableSet<String> =
-        mutableSetOf(WidgetContainer::class.java.name)
+        mutableSetOf(GenerateItself::class.java.name)
 
     override fun getSupportedSourceVersion(): SourceVersion = SourceVersion.latest()
 
@@ -38,7 +38,7 @@ class WidgetContainerProcessor : AbstractProcessor() {
         annotations: MutableSet<out TypeElement>,
         roundEnv: RoundEnvironment
     ): Boolean {
-        roundEnv.getElementsAnnotatedWith(WidgetContainer::class.java).forEach {
+        roundEnv.getElementsAnnotatedWith(GenerateItself::class.java).forEach {
             if (it.kind == ElementKind.CLASS) return@forEach constructWidgetContainer(it)
             processingEnv.printError("Only classes can be annotated")
             return true

@@ -3,21 +3,15 @@ package com.brotandos.kotlify.container
 import android.content.Context
 import android.content.SharedPreferences
 import android.view.View
-import androidx.activity.ComponentActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.content.edit
 import androidx.core.view.children
-import com.brotandos.kotlify.annotation.WidgetContainer
-import com.brotandos.kotlify.common.Air
+import com.brotandos.kotlify.annotation.GenerateItself
 import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.CustomSize
-import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutSize
 import com.brotandos.kotlify.common.WrapContent
-import com.brotandos.kotlify.container.root.VRoot
-import com.brotandos.kotlify.container.root.VRootOwner
 import com.brotandos.kotlify.element.ID_NOT_SET
 import com.brotandos.kotlify.element.WidgetElement
 
@@ -32,7 +26,7 @@ typealias ConstraintMap = MutableMap<
         MutableMap<ConstraintSide, () -> ConstraintTarget>
 >
 
-@WidgetContainer
+@GenerateItself
 abstract class VConstraint<V : ConstraintLayout, LP : ConstraintLayout.LayoutParams>(
         size: LayoutSize
 ) : VContainer<V, LP>(size) {
@@ -53,15 +47,15 @@ abstract class VConstraint<V : ConstraintLayout, LP : ConstraintLayout.LayoutPar
 
     val restSpaceWater = CustomSize(0.dp, WrapContent)
 
-    override fun onBuildFinished(constraintLayout: V) {
-        super.onBuildFinished(constraintLayout)
-        val sharedPreferences = constraintLayout.context.getSharedPreferences(
+    override fun onBuildFinished(view: V) {
+        super.onBuildFinished(view)
+        val sharedPreferences = view.context.getSharedPreferences(
                 KotlifyInternals.IDS_CACHE_FILE_NAME,
                 Context.MODE_PRIVATE
         )
-        identifyWidgets(sharedPreferences, constraintLayout.children.toList())
+        identifyWidgets(sharedPreferences, view.children.toList())
         val constraintSet = ConstraintSet()
-        constraintSet.clone(constraintLayout)
+        constraintSet.clone(view)
         for ((sourceWidget, targets) in constraints) {
             targets.forEach { (side, targetGetter) ->
                 val target = targetGetter.invoke()
@@ -76,12 +70,12 @@ abstract class VConstraint<V : ConstraintLayout, LP : ConstraintLayout.LayoutPar
                         side.value,
                         target.widgetElement?.id ?: ConstraintSet.PARENT_ID,
                         target.side.value,
-                        margin.getValue(constraintLayout.context.density)
+                        margin.getValue(view.context.density)
                 )
             }
         }
         constraintLayoutInits.forEach { it.invoke(constraintSet) }
-        constraintSet.applyTo(constraintLayout)
+        constraintSet.applyTo(view)
     }
 
     private fun identifyWidgets(

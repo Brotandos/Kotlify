@@ -4,6 +4,8 @@ import android.annotation.TargetApi;
 import android.app.Application;
 import android.content.Context;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,10 +57,11 @@ public final class RxPermission implements RxPermissionContract {
     /**
      * Requests permissions immediately, <b>must be invoked during initialization phase of your application</b>.
      */
+    @NotNull
     @Override
     @NonNull
     @CheckReturnValue
-    public Observable<Permission> requestEach(@NonNull final String... permissions) {
+    public Observable<Permission> requestEach(@NotNull @NonNull final String... permissions) {
         return Observable.just(TRIGGER)
                 .compose(ensureEach(permissions));
     }
@@ -66,9 +69,10 @@ public final class RxPermission implements RxPermissionContract {
     /**
      * Requests the permission immediately, <b>must be invoked during initialization phase of your application</b>.
      */
+    @NotNull
     @Override
     @NonNull
-    public Single<Permission> request(@NonNull final String permission) {
+    public Single<Permission> request(@NotNull @NonNull final String permission) {
         return requestEach(permission).firstOrError();
     }
 
@@ -165,7 +169,7 @@ public final class RxPermission implements RxPermissionContract {
      */
     @Override
     @CheckReturnValue
-    public boolean isGranted(@NonNull final String permission) {
+    public boolean isGranted(@NotNull @NonNull final String permission) {
         return !isMarshmallow() || isGrantedOnM(permission);
     }
 
@@ -176,7 +180,7 @@ public final class RxPermission implements RxPermissionContract {
      */
     @Override
     @CheckReturnValue
-    public boolean isRevokedByPolicy(@NonNull final String permission) {
+    public boolean isRevokedByPolicy(@NotNull @NonNull final String permission) {
         return isMarshmallow() && isRevokedOnM(permission);
     }
 

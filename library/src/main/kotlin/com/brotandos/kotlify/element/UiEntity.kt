@@ -5,11 +5,9 @@ import androidx.annotation.CallSuper
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.KotlifyInternals.NO_GETTER
-import com.brotandos.kotlify.common.NoGetterException
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import java.lang.RuntimeException
 
 abstract class UiEntity<T> : Disposable {
 

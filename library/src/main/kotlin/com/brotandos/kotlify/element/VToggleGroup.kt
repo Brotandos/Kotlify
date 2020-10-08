@@ -5,7 +5,6 @@ import android.widget.LinearLayout
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
 import com.brotandos.kotlify.common.LayoutSize
-import com.brotandos.kotlify.common.accept
 import com.brotandos.kotlify.exception.PathInTreeIgnoredException
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup

@@ -1,5 +1,6 @@
 package com.brotandos.kotlify.sandbox
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.view.Gravity
 import android.widget.Button
@@ -68,7 +69,10 @@ class TestingViewModel : ViewModel(), VRootOwner {
             vCustom<Button>(200.dp x 200.dp) {
                 id = R.id.bottom_sheet_dialog_trigger
                 lparams { gravity = Gravity.START }
-                initView { text = "Show bottom sheet" }
+                initView {
+                    @SuppressLint("SetTextI18n")
+                    text = "Show bottom sheet"
+                }
                 onClick {
                     isBottomDialog.accept(true)
                     isDark.toggleValue()
@@ -80,6 +84,7 @@ class TestingViewModel : ViewModel(), VRootOwner {
                 isAppeared = isTextVisible
                 lparams { gravity = Gravity.CENTER_HORIZONTAL }
                 initView {
+                    @SuppressLint("SetTextI18n")
                     text = "Hello, World!"
                     setTextColor(0xFFFF0000.toInt())
                 }

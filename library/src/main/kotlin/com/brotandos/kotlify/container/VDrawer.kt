@@ -11,7 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
 import androidx.drawerlayout.widget.DrawerLayout
-import com.brotandos.kotlify.annotation.WidgetContainer
+import com.brotandos.kotlify.annotation.GenerateItself
 import com.brotandos.kotlify.common.CustomTypefaceSpan
 import com.brotandos.kotlify.common.KotlifyContext
 import com.brotandos.kotlify.common.KotlifyInternals
@@ -23,7 +23,7 @@ import com.google.android.material.navigation.NavigationView
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.android.schedulers.AndroidSchedulers
 
-@WidgetContainer
+@GenerateItself
 abstract class VDrawer<V : DrawerLayout, LP : DrawerLayout.LayoutParams>(
         size: LayoutSize
 ) : VContainer<V, LP>(size) {

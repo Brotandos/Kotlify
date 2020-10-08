@@ -138,8 +138,6 @@ abstract class VToolbar<V : Toolbar, LP : Toolbar.LayoutParams>(
             onClick = f
         }
 
-        var vBadge: VBadge? = null
-
         fun inflate(menu: Menu, context: Context) {
             val menuItem = menu.add(title)
 
@@ -190,5 +188,7 @@ abstract class VToolbar<V : Toolbar, LP : Toolbar.LayoutParams>(
         }
     }
 
-    class VBadge()
+    /**
+     * TODO VBadge
+     * */
 }
