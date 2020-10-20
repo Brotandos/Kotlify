@@ -1,10 +1,12 @@
 package com.brotandos.kotlify.common
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Parcelable
+import android.util.TypedValue
 import androidx.annotation.ColorInt
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
@@ -70,3 +72,9 @@ inline fun <reified T : Activity> T.clearAndRestart() {
     finish()
     startActivity<T>(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
 }
+
+fun Context.dp(value: Int) = TypedValue.applyDimension(
+    TypedValue.COMPLEX_UNIT_DIP,
+    value.toFloat(),
+    resources.displayMetrics
+).toInt()

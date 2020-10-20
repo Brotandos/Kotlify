@@ -200,12 +200,12 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
 
         val (width, height) = size.getValuePair(density)
         view.layoutParams = ViewGroup.LayoutParams(width, height)
-        viewInit?.invoke(view)
         layoutInit?.invoke(view)
+        viewInit?.invoke(view)
         initSubscriptions(view)
 
-        if (view.hasOnClickListeners())
-            throw IllegalStateException("There shouldn't be onClickListener set up straightly, use onClick or throttleClick functions instead")
+        // Fails on adding AutoCompleteTextView
+        // if (view.hasOnClickListeners()) throw IllegalStateException("There shouldn't be onClickListener set up straightly, use onClick or throttleClick functions instead")
 
         clickRelay?.let { relay ->
             view.setOnClickListener {

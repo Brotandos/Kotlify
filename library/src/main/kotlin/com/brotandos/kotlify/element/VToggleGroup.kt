@@ -86,6 +86,16 @@ class VToggleGroup<T : ToggleOption>(
         children += this to vToggle
         return vToggle
     }
+
+    fun VButton<MaterialButton>.lparams(init: LinearLayout.LayoutParams.() -> Unit) {
+        layoutInit = {
+            val density = context.density
+            val (widgetWidth, widgetHeight) = size.getValuePair(density)
+            val instance = LinearLayout.LayoutParams(widgetWidth, widgetHeight)
+            instance.init()
+            layoutParams = instance
+        }
+    }
 }
 
 open class ToggleOption(val name: String)

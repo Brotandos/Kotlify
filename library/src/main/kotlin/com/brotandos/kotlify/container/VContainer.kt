@@ -158,8 +158,16 @@ abstract class VContainer<V : ViewGroup, LP : ViewGroup.LayoutParams>(
         return vBottomSheetDialog
     }
 
-    operator fun WidgetElement<*>.unaryPlus(): Disposable {
+    // FIXME it's impossible to set layoutInit, because unaryPlus goes after init
+    @Deprecated("Impossible to use layoutInit, use VContainer#attach function instead")
+    operator fun <T : WidgetElement<*>> T.unaryPlus(): T {
         children += this
+        return this
+    }
+
+    fun <T : WidgetElement<*>> T.attach(init: (T.() -> Unit)? = null): T {
+        children += this
+        init?.invoke(this)
         return this
     }
 
