@@ -10,6 +10,7 @@ import android.widget.*
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.Toolbar
 import androidx.cardview.widget.CardView
+import androidx.viewpager.widget.ViewPager
 import com.brotandos.kotlify.common.Air
 import com.brotandos.kotlify.common.CustomLength
 import com.brotandos.kotlify.common.CustomSize
@@ -135,12 +136,20 @@ interface WidgetContainer {
     }.also(::accept).apply { init?.invoke(this) }
 
     fun vList(
-            size: LayoutSize,
-            mediator: VRecycler.Mediator,
-            init: (VRecycler.() -> Unit)? = null
+        size: LayoutSize,
+        mediator: VRecycler.Mediator,
+        init: (VRecycler.() -> Unit)? = null
     ): VRecycler = VRecycler(mediator = mediator, layoutManager = LayoutManager.Linear, size = size)
-            .also(::accept)
-            .apply { init?.invoke(this) }
+        .also(::accept)
+        .apply { init?.invoke(this) }
+
+    fun vListHorizontal(
+        size: LayoutSize,
+        mediator: VRecycler.Mediator,
+        init: (VRecycler.() -> Unit)? = null
+    ): VRecycler = VRecycler(mediator = mediator, layoutManager = LayoutManager.Horizontal, size = size)
+        .also(::accept)
+        .apply { init?.invoke(this) }
 
     fun vGrid(
             size: LayoutSize,
@@ -207,6 +216,23 @@ interface WidgetContainer {
             object : VImage<ImageView>(size) {
                 override fun createView(context: Context): ImageView = ImageView(context)
             }.also(::accept).apply { init?.invoke(this) }
+
+    fun vCheckBox(
+        size: LayoutSize,
+        init: (VCheckBox<CheckBox>.() -> Unit)? = null): VCheckBox<CheckBox> =
+        object  : VCheckBox<CheckBox>(size) {
+            override fun createView(context: Context): CheckBox = CheckBox(context)
+        }.also(::accept).apply { init?.invoke(this) }
+
+    fun vImagePager(
+        size: LayoutSize,
+        imageHolder: VImagePager.ImageHolder,
+        init: (VImagePager<ViewPager>.() -> Unit)? = null) : VImagePager<ViewPager> =
+        object : VImagePager<ViewPager>(imageHolder, size) {
+            override fun createView(context: Context): ViewPager {
+                return ViewPager(context)
+            }
+        }.also(::accept).apply { init?.invoke(this) }
 
     fun <T : ToggleOption> vToggleGroup(
             size: LayoutSize,
