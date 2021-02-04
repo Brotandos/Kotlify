@@ -61,6 +61,11 @@ class VRecycler(
             adapter = it
         }
         view.layoutManager = when (layoutManager) {
+            is LayoutManager.Horizontal -> {
+                val linearLayoutManager = LinearLayoutManager(context)
+                linearLayoutManager.orientation = LinearLayoutManager.HORIZONTAL
+                linearLayoutManager
+            }
             is LayoutManager.Linear -> LinearLayoutManager(context)
             is LayoutManager.Grid -> GridLayoutManager(context, layoutManager.spanCount)
             is LayoutManager.Staggered -> StaggeredGridLayoutManager(
