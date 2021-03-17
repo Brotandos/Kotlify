@@ -234,6 +234,15 @@ interface WidgetContainer {
             }
         }.also(::accept).apply { init?.invoke(this) }
 
+    fun vImagePager(
+        size: LayoutSize,
+        init: (VImagePager<ViewPager>.() -> Unit)? = null) : VImagePager<ViewPager> =
+        object : VImagePager<ViewPager>(ImageHolder() ,size) {
+            override fun createView(context: Context): ViewPager {
+                return ViewPager(context)
+            }
+        }.also(::accept).apply { init?.invoke(this) }
+
     fun <T : ToggleOption> vToggleGroup(
             size: LayoutSize,
             selectedOption: BehaviorRelay<T>,

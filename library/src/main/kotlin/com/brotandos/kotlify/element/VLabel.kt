@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.text.Editable
 import android.text.TextWatcher
+import android.widget.EditText
 import android.widget.TextView
 import androidx.annotation.ColorInt
 import com.brotandos.kotlify.common.LayoutSize
@@ -12,10 +13,13 @@ import io.reactivex.Observer
 import io.reactivex.android.MainThreadDisposable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.Consumer
+import io.reactivex.schedulers.Schedulers
 
 abstract class VLabel<V : TextView>(size: LayoutSize) : WidgetElement<V>(size) {
 
     private var listener: Listener? = null
+
+    var inputType: BehaviorRelay<Int>? = null
 
     var textResId: Int? = null
 
@@ -66,9 +70,15 @@ abstract class VLabel<V : TextView>(size: LayoutSize) : WidgetElement<V>(size) {
                     listener?.let { view?.removeTextChangedListener(it) }
                     view?.text = text
                     listener?.let { view?.addTextChangedListener(it) }
+                    if (view is EditText)
+                        view.setSelection(view.text.length)
                 }
                 .untilLifecycleDestroy()
         }
+        inputType
+            ?.observeOn(AndroidSchedulers.mainThread())
+            ?.subscribe { view?.inputType = it }
+            ?.untilLifecycleDestroy()
     }
 
     private class Listener(private val view: TextView, private val observer: Consumer<in String>) :

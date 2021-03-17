@@ -126,6 +126,14 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
             backgroundRelay = value
         }
 
+    private var backgroundResourceRelay: BehaviorRelay<Int>? = null
+    var backgroundResource: BehaviorRelay<Int>
+        @Deprecated(NO_GETTER, level = DeprecationLevel.ERROR)
+        get() = KotlifyInternals.noGetter()
+        set(value) {
+            backgroundResourceRelay = value
+        }
+
     var clickRelay: PublishRelay<Unit>? = null
         set(value) {
             if (field != null) throw IllegalStateException("You can assign field of clickRelay only once")
@@ -186,6 +194,11 @@ abstract class WidgetElement<V : View>(val size: LayoutSize) : UiEntity<V>() {
                 ?.observeOn(AndroidSchedulers.mainThread())
                 ?.subscribe { view?.background = it }
                 ?.untilLifecycleDestroy()
+
+        backgroundResourceRelay
+            ?.observeOn(AndroidSchedulers.mainThread())
+            ?.subscribe { view?.setBackgroundResource(it) }
+            ?.untilLifecycleDestroy()
     }
 
     @CallSuper
