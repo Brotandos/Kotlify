@@ -14,6 +14,8 @@ abstract class VLabel<V : TextView>(size: LayoutSize) : WidgetElement<V>(size) {
 
     var text: String? = null
 
+    var inputType: BehaviorRelay<Int>? = null
+
     var textResourceRelay: BehaviorRelay<Int>? = null
 
     var textRelay: BehaviorRelay<String>? = null
@@ -54,6 +56,10 @@ abstract class VLabel<V : TextView>(size: LayoutSize) : WidgetElement<V>(size) {
         textRelay
             ?.observeOn(AndroidSchedulers.mainThread())
             ?.subscribe { view?.text = it }
+            ?.untilLifecycleDestroy()
+        inputType
+            ?.observeOn(AndroidSchedulers.mainThread())
+            ?.subscribe { view?.inputType = it }
             ?.untilLifecycleDestroy()
     }
 }
