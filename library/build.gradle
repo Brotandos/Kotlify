@@ -85,6 +85,9 @@ dependencies {
     def rxJava2Version = '2.1.1'
     implementation "io.reactivex.rxjava2:rxandroid:$rxJava2Version"
     implementation "com.jakewharton.rxrelay2:rxrelay:$rxJava2Version"
+    
+    def rxBinding = '4.0.0'
+    implementation "com.jakewharton.rxbinding4:rxbinding:$rxBinding"
 
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
 
